@@ -16,8 +16,7 @@ for dataset in datasets:
 
     df.drop(df[df["inferred_phase"] == "LAYOVER_DURING"].index, inplace=True)
 
-    for index, row in df.iterrows():
-        currentVehicleId = row["vehicle_id"]
+    for currentVehicleId in df["vehicle_id"].unique():
         if currentVehicleId != None and map_vehicles_by_id.get(currentVehicleId) == None:
             subDf = df[df["vehicle_id"] == currentVehicleId]
             map_vehicles_by_id[currentVehicleId] = subDf[["latitude", "longitude", "time_received", "distance_along_trip", "next_scheduled_stop_distance", "inferred_phase", "next_scheduled_stop_id"]]
@@ -88,4 +87,3 @@ for dataset in datasets:
                 if dist_purple < 0:
                     dist_purple = 0
                 dist_two_stops = dist_purple + next["next_scheduled_stop_distance"].values[0]
-    break
