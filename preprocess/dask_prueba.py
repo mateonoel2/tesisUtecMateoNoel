@@ -71,19 +71,13 @@ def my_function(sub_df):
     return (times, speeds)
 
 for dataset in datasets:
-    print("ENTRANDO A READ_CSV")
     df = dd.read_csv(os.path.join(folder, dataset), sep="\t", assume_missing=True)
-    print("ENTRANDO A LOC")
     df = df.loc[~(df['inferred_phase'] == 'LAYOVER_DURING')]
     # df = df.loc[(df['vehicle_id'] == 469.0) | (df['vehicle_id'] == 195.0)]
-    print("ENTRANDO A DROPNA")
     df = df.dropna(subset=['vehicle_id', 'time_received', 'next_scheduled_stop_distance', 'distance_along_trip'])
-    print("ENTRANDO A GROUPBY")
     grouped = df.groupby('vehicle_id')
-    print("ENTRANDO A COMPUTE")
     result = grouped.apply(my_function, meta=('float64'))
     aux = result.compute()
     # write this into a csv
-    print("ENTRANDO A WRITE")
     aux.to_csv("results/result.csv")
     break
