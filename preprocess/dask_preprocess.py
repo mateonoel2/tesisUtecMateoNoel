@@ -2,11 +2,12 @@ import dask.dataframe as dd
 import os
 from calc_data import calc_data
 import pandas as pd
-from joblib import Parallel, delayed
+
 
 # Define a function to sort the partition by 'time_received'
-def sort_partition(df):
-    return df.sort_values('time_received')
+def sort_and_calc(df):
+    sorted_df = df.sort_values('time_received')
+    return calc_data(sorted_df)
 
 if __name__ == '__main__':
     folder = "../datasets"
@@ -17,9 +18,14 @@ if __name__ == '__main__':
     ddf = dd.read_csv(dataset_name, sep="\t", assume_missing=True)
 
     # Filter out and drop missing values
-    ddf = ddf.query('inferred_phase != "LAYOVER_DURING"').dropna(subset=['vehicle_id', 'time_received', 'next_scheduled_stop_distance', 'distance_along_trip'])
+    ddf = ddf.loc[(ddf['inferred_phase'] != "LAYOVER_DURING") & 
+                (ddf['vehicle_id'].notnull()) & 
+                (ddf['time_received'].notnull()) & 
+                (ddf['next_scheduled_stop_distance'].notnull()) & 
+                (ddf['distance_along_trip'].notnull())]
 
-    #Filter line
+
+    #Test filter line
     ddf = ddf.loc[(ddf['vehicle_id'] == 469.0) | (ddf['vehicle_id'] == 195.0)]
 
     # Get the number of unique vehicle_id values
@@ -31,11 +37,8 @@ if __name__ == '__main__':
     # Repartition the data based on the index
     ddf = ddf.repartition(npartitions=n_partitions)
 
-    # Use joblib to parallelize the sort_partition function
-    ddf = dd.from_delayed(Parallel(n_jobs=8)(delayed(sort_partition)(part) for part in ddf.to_delayed()))
-
-    # Apply the function to each partition
-    data = ddf.map_partitions(calc_data, meta=ddf._meta).compute(num_workers=8)
+    # Apply the combined function to each partition and compute the result
+    data = ddf.map_partitions(sort_and_calc, meta=ddf._meta).compute(num_workers=8)
 
     # create an empty dataframe
     columns = ['exit_stop', 'target_stop', 'distance', 'speed', 'date', 'weekday', 'exit_time', 'arrive_time']
