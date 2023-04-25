@@ -54,7 +54,7 @@ def calc_data(partition):
                 dist_purple = None
 
                 if speed != 0:
-                    data.append((current_stop, next_stop, dist_two_stops, prev_time_to_stop, arrived_time, speed))
+                    data.append((current_stop, next_stop, dist_two_stops, speed, prev_time_to_stop.weekday(),prev_time_to_stop.date(), prev_time_to_stop.time(), arrived_time.time()))
 
                 prev_time_to_stop = arrived_time
 
