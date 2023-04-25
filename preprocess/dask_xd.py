@@ -64,15 +64,17 @@ def calc_data(sub_df):
                     dist_two_stops = dist_purple + next["next_scheduled_stop_distance"].values[0]
                     continue
                 speed = dist_two_stops / (arrived_time-prev_time_to_stop).total_seconds()
-                prev_time_to_stop = arrived_time
                 dist_purple = None
 
                 if speed != 0:
                     start_stops_id.append(current_stop)
                     end_stops_id.append(next_stop)
-                    speeds.append(speed)
                     distances.append(dist_two_stops)
+                    start_times.append(prev_time_to_stop)
                     arrived_times.append(arrived_time)
+                    speeds.append(speed)
+
+                prev_time_to_stop = arrived_time
 
         if dist_purple == None:
             dist_purple = dist_two_times - dist_current_next_stop

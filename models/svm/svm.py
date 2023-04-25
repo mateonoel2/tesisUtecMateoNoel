@@ -15,10 +15,14 @@ x = []
 # arrive times
 y = []
 
-for data in (df["0"]):
+for data in df["0"]:
     data = eval(data)
-    y.append(data[0])
-    x.append(data[1])
+    start = [s.replace("MTA_", "") for s in data[0]]
+    stop = [s.replace("MTA_", "") for s in data[1]]
+    x.extend(list(zip(start, stop, data[2], data[3], data[4])))
+    y.extend(data[5])
+
+print(len(x), len(y))
 
 # kernel RBF (radial basis function)
 tuned_parameters = [
