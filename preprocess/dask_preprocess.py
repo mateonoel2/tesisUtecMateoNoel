@@ -2,6 +2,7 @@ import dask.dataframe as dd
 import os
 from calc_data import calc_data
 import pandas as pd
+from joblib import Parallel, delayed
 
 # Define a function to sort the partition by 'time_received'
 def sort_partition(df):
@@ -29,7 +30,9 @@ if __name__ == '__main__':
 
     # Repartition the data based on the index
     ddf = ddf.repartition(npartitions=n_partitions)
-    ddf = ddf.map_partitions(sort_partition)
+
+    # Use joblib to parallelize the sort_partition function
+    ddf = dd.from_delayed(Parallel(n_jobs=8)(delayed(sort_partition)(part) for part in ddf.to_delayed()))
 
     # Apply the function to each partition
     data = ddf.map_partitions(calc_data, meta=ddf._meta).compute(num_workers=8)
@@ -45,4 +48,4 @@ if __name__ == '__main__':
     df = pd.concat(dfs, ignore_index=True)
 
     date = os.path.basename(dataset_name)[14:24]
-    df.to_csv(f'../processed_models/{date}.csv', index=False)
+    df.to_csv(f'../preprocessed_datasets/{date}.csv', index=False)
