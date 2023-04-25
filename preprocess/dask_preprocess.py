@@ -7,11 +7,13 @@ folder = "../datasets"
 datasets = os.listdir(folder)
 
 # Load your Dask DataFrame
-ddf = dd.read_csv(os.path.join(folder, datasets[0]), sep="\t", assume_missing=True)
+dataset_name = os.path.join(folder, datasets[0])
+ddf = dd.read_csv(dataset_name, sep="\t", assume_missing=True)
 
 # Filter out and drop missing values
 ddf = ddf.loc[~(ddf['inferred_phase'] == 'LAYOVER_DURING')]
 ddf = ddf.dropna(subset=['vehicle_id', 'time_received', 'next_scheduled_stop_distance', 'distance_along_trip'])
+#Filter line
 ddf = ddf.loc[(ddf['vehicle_id'] == 469.0) | (ddf['vehicle_id'] == 195.0)]
 
 # Get the number of unique vehicle_id values
@@ -42,7 +44,9 @@ for row in data:
     temp_df = pd.DataFrame(row, columns=columns)
     
     # append the temporary dataframe to the main dataframe
-    df = df.append(temp_df, ignore_index=True)
+    df = df._append(temp_df, ignore_index=True)
 
-# write the dataframe to a csv file
-df.to_csv('results/result.csv', index=False)
+
+date = os.path.basename(dataset_name)[14:24]
+
+df.to_csv(f'../processed_models/{date}.csv', index=False)
