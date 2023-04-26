@@ -2,7 +2,7 @@ import dask.dataframe as dd
 import os
 from calc_data import calc_data
 import pandas as pd
-
+from dask.distributed import Client
 
 # Define a function to sort the partition by 'time_received'
 def sort_and_calc(df):
@@ -10,6 +10,8 @@ def sort_and_calc(df):
     return calc_data(sorted_df)
 
 if __name__ == '__main__':
+    client = Client() 
+
     folder = "../datasets"
     datasets = os.listdir(folder)
 
@@ -26,7 +28,7 @@ if __name__ == '__main__':
 
 
     #Test filter line
-    ddf = ddf.loc[(ddf['vehicle_id'] == 469.0) | (ddf['vehicle_id'] == 195.0)]
+    #ddf = ddf.loc[(ddf['vehicle_id'] == 469.0) | (ddf['vehicle_id'] == 195.0)]
 
     # Get the number of unique vehicle_id values
     n_partitions = ddf['vehicle_id'].nunique().compute(num_workers=8)
@@ -49,6 +51,6 @@ if __name__ == '__main__':
         dfs.append(pd.DataFrame(row, columns=columns))
 
     df = pd.concat(dfs, ignore_index=True)
-
+    
     date = os.path.basename(dataset_name)[14:24]
     df.to_csv(f'../preprocessed_datasets/{date}.csv', index=False)
