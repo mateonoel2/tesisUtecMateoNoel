@@ -31,7 +31,7 @@ if __name__ == '__main__':
     #ddf = ddf.loc[(ddf['vehicle_id'] == 469.0) | (ddf['vehicle_id'] == 195.0)]
 
     # Get the number of unique vehicle_id values
-    n_partitions = ddf['vehicle_id'].nunique().compute(num_workers=8)
+    n_partitions = ddf['vehicle_id'].nunique().compute()
 
     # Set the index to the 'vehicle_id' column
     ddf = ddf.set_index('vehicle_id')
@@ -40,10 +40,10 @@ if __name__ == '__main__':
     ddf = ddf.repartition(npartitions=n_partitions)
 
     # Apply the combined function to each partition and compute the result
-    data = ddf.map_partitions(sort_and_calc, meta=ddf._meta).compute(num_workers=8)
+    data = ddf.map_partitions(sort_and_calc, meta=ddf._meta).compute()
 
     # create an empty dataframe
-    columns = ['exit_stop', 'target_stop', 'distance', 'speed', 'date', 'weekday', 'exit_time', 'arrive_time']
+    columns = ['exit_stop', 'target_stop', 'distance', 'speed', 'weekday', 'date', 'exit_time', 'arrive_time']
     dfs = []
 
     # iterate over each row in the series
