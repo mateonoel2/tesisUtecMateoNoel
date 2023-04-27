@@ -8,7 +8,7 @@ from sklearn.model_selection import train_test_split
 import datetime
 
 # load data
-df = pd.read_csv("../../preprocess/results/result.csv")
+df = pd.read_csv("processed_models\2014-08-01test.csv")
 
 # arrive speeds
 x = []

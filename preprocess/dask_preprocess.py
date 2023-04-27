@@ -26,10 +26,6 @@ if __name__ == '__main__':
                 (ddf['next_scheduled_stop_distance'].notnull()) & 
                 (ddf['distance_along_trip'].notnull())]
 
-
-    #Test filter line
-    #ddf = ddf.loc[(ddf['vehicle_id'] == 469.0) | (ddf['vehicle_id'] == 195.0)]
-
     # Get the number of unique vehicle_id values
     n_partitions = ddf['vehicle_id'].nunique().compute()
 
