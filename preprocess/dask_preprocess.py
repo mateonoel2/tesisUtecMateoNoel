@@ -19,12 +19,11 @@ if __name__ == '__main__':
     dataset_name = os.path.join(folder, datasets[0])
     ddf = dd.read_csv(dataset_name, sep="\t", assume_missing=True)
 
-    # Filter out and drop missing values
-    ddf = ddf.loc[(ddf['inferred_phase'] != "LAYOVER_DURING") & 
-                (ddf['vehicle_id'].notnull()) & 
-                (ddf['time_received'].notnull()) & 
-                (ddf['next_scheduled_stop_distance'].notnull()) & 
-                (ddf['distance_along_trip'].notnull())]
+    # Filter out all phases that aren't LAYOVER_DURING and all rows with null
+    ddf = ddf.loc[(ddf['inferred_phase'] != "LAYOVER_DURING")].dropna()
+
+    #test line
+    ddf = ddf.loc[(ddf['vehicle_id'] == 469.0) | (ddf['vehicle_id'] == 195.0)]
 
     # Get the number of unique vehicle_id values
     n_partitions = ddf['vehicle_id'].nunique().compute()

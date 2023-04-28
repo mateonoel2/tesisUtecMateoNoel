@@ -1,4 +1,5 @@
 from datetime import datetime as dt, timedelta
+import pandas as pd
 
 def calc_data(partition):
     data = []
@@ -11,10 +12,8 @@ def calc_data(partition):
     # iterate through each row in the dataframe
     for i in range(len(partition)-1):
         current = partition.iloc[[i]]
-        current_pos = (current["latitude"].values[0], current["longitude"].values[0])
         current_distance = current["distance_along_trip"].values[0]
         next = partition.iloc[[i+1]]
-        next_pos = (next["latitude"].values[0], next["longitude"].values[0])
         next_distance = next["distance_along_trip"].values[0]
         current_time = dt.strptime(current["time_received"].values[0], '%Y-%m-%d %H:%M:%S')
         next_time = dt.strptime(next["time_received"].values[0], '%Y-%m-%d %H:%M:%S')
@@ -22,14 +21,27 @@ def calc_data(partition):
         # skip row if the current and next positions are the same, 
         # or if the next stop is not further along the route than the current stop,
         # or if the current and next times are the same
-        if current_pos == next_pos or next_distance <= current_distance or current_time == next_time:
+        if next_distance <= current_distance:
             continue
+        
+        while(current_time == next_time):
+            i+=1
+            partition = partition.drop(i)
+            next = partition.iloc[[i+1]]
+            next_distance = next["distance_along_trip"].values[0]
+            next_time = dt.strptime(next["time_received"].values[0], '%Y-%m-%d %H:%M:%S')
 
         current_stop = current["next_scheduled_stop_id"].values[0]
         next_stop = next["next_scheduled_stop_id"].values[0]
         dist_two_times = next_distance - current_distance
         dist_current_next_stop = current["next_scheduled_stop_distance"].values[0]
+        next_dist_current_next_stop = next["next_scheduled_stop_distance"].values[0]
         phase = current["inferred_phase"].values[0]
+
+        if (next_distance - current_distance != dist_current_next_stop - next_dist_current_next_stop):
+            next["next_scheduled_stop_distance"].values[0] = dist_current_next_stop - (next_distance - current_distance)
+            if (next["next_scheduled_stop_distance"].values[0] < 0):
+                next["next_scheduled_stop_distance"].values[0] = 0
 
         if phase == "IN_PROGRESS":
             if is_in_progress == False:
@@ -44,6 +56,8 @@ def calc_data(partition):
         if first:
             if current_stop != next_stop:
                 speed = dist_two_times / (next_time - current_time).total_seconds()
+                if (speed<0.01 or speed>10):
+                    continue
                 prev_time_to_stop = current_time + timedelta(seconds=dist_current_next_stop/speed)
                 first = False
         else:
@@ -77,3 +91,9 @@ def calc_data(partition):
             dist_two_stops = dist_purple + next["next_scheduled_stop_distance"].values[0]
     
     return data
+
+
+df = pd.read_csv('../preprocessed_datasets/3652Ordered.csv')
+list = calc_data(df)
+df = pd.DataFrame(list)
+df.to_csv(f'../preprocessed_datasets/processed3652.csv', index=False)
