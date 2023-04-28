@@ -91,9 +91,3 @@ def calc_data(partition):
             dist_two_stops = dist_purple + next["next_scheduled_stop_distance"].values[0]
     
     return data
-
-
-df = pd.read_csv('../preprocessed_datasets/3652Ordered.csv')
-list = calc_data(df)
-df = pd.DataFrame(list)
-df.to_csv(f'../preprocessed_datasets/processed3652.csv', index=False)
