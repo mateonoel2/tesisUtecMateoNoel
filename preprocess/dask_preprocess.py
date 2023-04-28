@@ -38,7 +38,7 @@ if __name__ == '__main__':
     data = ddf.map_partitions(sort_and_calc, meta=ddf._meta).compute()
 
     # create an empty dataframe
-    columns = ['exit_stop', 'target_stop', 'distance', 'speed', 'weekday', 'date', 'exit_time', 'arrive_time']
+    columns = ['exit_stop', 'target_stop', 'distance(m)', 'speed(km/h)', 'weekday', 'date', 'exit_time', 'arrive_time']
     dfs = []
 
     # iterate over each row in the series
