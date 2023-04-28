@@ -9,7 +9,9 @@ def calc_data(partition):
     prev_time_to_stop: dt | None = None
 
     # iterate through each row in the dataframe
+
     for i in range(len(partition)-1):
+
         current = partition.iloc[[i]]
         next = partition.iloc[[i+1]]
 
@@ -33,7 +35,6 @@ def calc_data(partition):
         else:
             is_in_progress = False
             continue
-
 
         dist_two_times = next_distance - current_distance
 
@@ -74,5 +75,5 @@ def calc_data(partition):
                     data.append((next_stop_from_current, next_stop_from_next, dist_two_stops, speed, prev_time_to_stop.weekday(),prev_time_to_stop.date(), prev_time_to_stop.time(), arrived_time.time()))
 
                 prev_time_to_stop = arrived_time
-                
+
     return data
