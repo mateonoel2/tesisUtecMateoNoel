@@ -48,4 +48,4 @@ if __name__ == '__main__':
     df = pd.concat(dfs, ignore_index=True)
     
     date = os.path.basename(dataset_name)[14:24]
-    df.to_csv(f'../preprocessed_datasets/{date}.csv', index=False)
+    df.to_csv(f'../processed_datasets/{date}.csv', index=False)
