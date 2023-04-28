@@ -56,7 +56,7 @@ def calc_data(partition):
         if first:
             if current_stop != next_stop:
                 speed = dist_two_times / (next_time - current_time).total_seconds()
-                if (speed<0.01 or speed>10):
+                if (speed<0.01 or speed>20):
                     continue
                 prev_time_to_stop = current_time + timedelta(seconds=dist_current_next_stop/speed)
                 first = False
