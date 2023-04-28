@@ -67,6 +67,10 @@ def calc_data(partition):
                 arrived_time = current_time + timedelta(seconds=time_to_stop)
 
                 dist_two_stops = dist_two_times-dist_next_stop_from_current + next["next_scheduled_stop_distance"].values[0]
+                
+                #Condición (SOLO SE ANALIZAN PARADAS DE MENOS DE 5KM)
+                if(dist_two_stops>5000):
+                    continue
                     
                 # calculate the speed of the bus between the last two stops
                 speed = dist_two_stops / (arrived_time-prev_time_to_stop).total_seconds()
