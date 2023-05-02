@@ -11,9 +11,7 @@ def sort_and_calc(df):
 
 if __name__ == '__main__':
     
-    # Create a Dask client to connect to a remote Dask scheduler
-    client = Client('scheduler-address:8786')
-    # Print the URL of the Dask dashboard
+    client = Client()
     print(client.dashboard_link)
 
     folder = "../datasets"
