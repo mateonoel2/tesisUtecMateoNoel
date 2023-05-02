@@ -4,22 +4,14 @@ from pyspark.sql.types import StructType, StructField, DoubleType, IntegerType
 from pyspark.ml.feature import VectorAssembler
 from pyspark.ml.regression import LinearRegression
 from pyspark.ml.evaluation import RegressionEvaluator
+import sys
 
 spark = SparkSession.builder.appName("PySpark Regression ANN Example").getOrCreate()
 
-schema = StructType([
-    StructField("day_of_week", IntegerType(), True),
-    StructField("day_of_month", IntegerType(), True),
-    StructField("month", IntegerType(), True),
-    StructField("exit_stop", IntegerType(), True),
-    StructField("target_stop", IntegerType(), True),
-    StructField("distance", DoubleType(), True),
-    StructField("exit_time", DoubleType(), True),
-    StructField("arrive_time", DoubleType(), True)
-])
-
 # Load data into a PySpark DataFrame
-data = spark.read.format("csv").option("header", "true").schema(schema).load("../processed_datasets/2014-08-01.csv")
+data = spark.read.format("parquet").load("../processed_datasets/test.parquet")
+data = data.drop('__index_level_0__')
+
 
 # Rename a column
 data = data.withColumnRenamed("arrive_time", "label")
