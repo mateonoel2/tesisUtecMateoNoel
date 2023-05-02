@@ -71,7 +71,7 @@ def calc_data(partition):
                 speed = speed*3.6
                 
                 if speed > 5:
-                    data.append((next_stop_from_current, next_stop_from_next, dist_two_stops, speed, prev_time_to_stop.weekday(),prev_time_to_stop.date(), prev_time_to_stop.time(), arrived_time.time()))
+                    data.append((next_stop_from_current, next_stop_from_next, dist_two_stops, prev_time_to_stop.date(), prev_time_to_stop.time().replace(microsecond=0), arrived_time.time().replace(microsecond=0)))
 
                 prev_time_to_stop = arrived_time
 

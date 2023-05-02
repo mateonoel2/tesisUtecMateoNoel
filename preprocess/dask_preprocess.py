@@ -12,7 +12,6 @@ def sort_and_calc(df):
 if __name__ == '__main__':
     
     client = Client()
-    print(client.dashboard_link)
 
     folder = "../datasets"
     datasets = os.listdir(folder)
@@ -25,7 +24,7 @@ if __name__ == '__main__':
     ddf = ddf.loc[(ddf['inferred_phase'] != "LAYOVER_DURING")].dropna()
 
     #test line
-    #ddf = ddf.loc[(ddf['vehicle_id'] == 469.0) | (ddf['vehicle_id'] == 195.0)]
+    ddf = ddf.loc[(ddf['vehicle_id'] == 469.0) | (ddf['vehicle_id'] == 195.0)]
 
     # Get the number of unique vehicle_id values
     n_partitions = ddf['vehicle_id'].nunique().compute()
@@ -40,7 +39,7 @@ if __name__ == '__main__':
     data = ddf.map_partitions(sort_and_calc, meta=ddf._meta).compute()
 
     # create an empty dataframe
-    columns = ['exit_stop', 'target_stop', 'distance(m)', 'speed(km/h)', 'weekday', 'date', 'exit_time', 'arrive_time']
+    columns = ['exit_stop', 'target_stop', 'distance', 'date', 'exit_time', 'arrive_time']
     dfs = []
 
     # iterate over each row in the series
