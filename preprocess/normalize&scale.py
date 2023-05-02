@@ -24,6 +24,7 @@ def time_to_seconds(time_str):
 # Iterate over the 'exit_time' and 'arrive_time' columns and convert each value to seconds since midnight
 for col in ['exit_time', 'arrive_time']:
     data[col] = data[col].apply(time_to_seconds)
+    
 # Concatenate the exit_stop and target_stop columns
 stops = pd.concat([data['exit_stop'], data['target_stop']], ignore_index=True)
 

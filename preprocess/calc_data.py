@@ -1,7 +1,8 @@
 from datetime import datetime as dt, timedelta
+import pandas as pd
 
 def calc_data(partition):
-    data = []
+    data = pd.DataFrame(columns=['trip', 'distance', 'date', 'exit_time', 'arrive_time'])
 
     first = True
     is_in_progress = True
@@ -71,7 +72,8 @@ def calc_data(partition):
                 speed = speed*3.6
                 
                 if speed > 5:
-                    data.append((next_stop_from_current, next_stop_from_next, dist_two_stops, prev_time_to_stop.date(), prev_time_to_stop.time().replace(microsecond=0), arrived_time.time().replace(microsecond=0)))
+                    new_row = [str(next_stop_from_current)+str(next_stop_from_next), dist_two_stops, prev_time_to_stop.date(), prev_time_to_stop.time().replace(microsecond=0), arrived_time.time().replace(microsecond=0)]
+                    data.loc[len(data)] = new_row
 
                 prev_time_to_stop = arrived_time
 
