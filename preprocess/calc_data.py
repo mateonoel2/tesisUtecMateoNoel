@@ -1,5 +1,4 @@
 from datetime import datetime as dt, timedelta
-import pandas as pd
 
 def calc_data(partition):
     data = []

@@ -10,7 +10,11 @@ def sort_and_calc(df):
     return calc_data(sorted_df)
 
 if __name__ == '__main__':
-    client = Client() 
+    
+    # Create a Dask client to connect to a remote Dask scheduler
+    client = Client('scheduler-address:8786')
+    # Print the URL of the Dask dashboard
+    print(client.dashboard_link)
 
     folder = "../datasets"
     datasets = os.listdir(folder)
@@ -23,7 +27,7 @@ if __name__ == '__main__':
     ddf = ddf.loc[(ddf['inferred_phase'] != "LAYOVER_DURING")].dropna()
 
     #test line
-    ddf = ddf.loc[(ddf['vehicle_id'] == 469.0) | (ddf['vehicle_id'] == 195.0)]
+    #ddf = ddf.loc[(ddf['vehicle_id'] == 469.0) | (ddf['vehicle_id'] == 195.0)]
 
     # Get the number of unique vehicle_id values
     n_partitions = ddf['vehicle_id'].nunique().compute()
