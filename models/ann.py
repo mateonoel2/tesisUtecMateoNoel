@@ -1,10 +1,9 @@
 # Import PySpark and the necessary libraries for linear regression
 from pyspark.sql import SparkSession
-from pyspark.sql.types import StructType, StructField, DoubleType, IntegerType
 from pyspark.ml.feature import VectorAssembler
 from pyspark.ml.regression import LinearRegression
 from pyspark.ml.evaluation import RegressionEvaluator
-import sys
+
 
 spark = SparkSession.builder.appName("PySpark Regression ANN Example").getOrCreate()
 
