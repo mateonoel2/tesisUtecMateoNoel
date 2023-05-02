@@ -1,12 +1,9 @@
 import pandas as pd
 from datetime import datetime
-from sklearn.preprocessing import MinMaxScaler
-from sklearn.preprocessing import LabelEncoder
 import sys
 
 def normalize(data):
     # Convert date feature to datetime format
-
     data['date'] = pd.to_datetime(data['date'], format='%Y-%m-%d')
 
     # Extract additional date features
@@ -34,21 +31,8 @@ def normalize(data):
 
     data = data.drop('trip', axis=1)
 
-    # Concatenate the exit_stop and target_stop columns
-    stops = pd.concat([data['exit_stop'], data['target_stop']], ignore_index=True)
-
-    # Fit the encoder on the concatenated stops and transform the columns
-    le = LabelEncoder()
-    stops_encoded = le.fit_transform(stops)
-    data['exit_stop'] = stops_encoded[:len(data)]
-    data['target_stop'] = stops_encoded[len(data):]
-
-    # Scale numerical variables
-    scaler = MinMaxScaler()
-    data['distance'] = scaler.fit_transform(data[['distance']])
-
     # Divide 'exit_time' and 'arrive_time' columns by 86400 to normalize to [0, 1] range
     data['exit_time'] = data['exit_time'] / 86400
     data['arrive_time'] = data['arrive_time'] / 86400
-    
+
     return data
