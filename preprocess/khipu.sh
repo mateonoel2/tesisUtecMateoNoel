@@ -1,8 +1,8 @@
 #!/bin/bash
 #SBATCH --job-name=dask_preprocess
 #SBATCH --partition=investigacion
-#SBATCH --ntasks=80
-#SBATCH --cpus-per-task=20
+#SBATCH --ntasks=20
+#SBATCH --cpus-per-task=10
 #SBATCH --mem-per-cpu=8G
 #SBATCH --time=unlimited
 #SBATCH --output=dask_preprocess.out
