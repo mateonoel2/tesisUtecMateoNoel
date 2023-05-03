@@ -65,6 +65,6 @@ if __name__ == '__main__':
 
         return None
 
-    dataframes_bag.map(process_data, client=client)
+    wait(dataframes_bag.map(process_data, client=client))
 
     client.close()
