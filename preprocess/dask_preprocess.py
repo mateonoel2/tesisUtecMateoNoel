@@ -33,13 +33,15 @@ if __name__ == '__main__':
         dataset_names.append(os.path.join(folder, dataset))
 
     try:
-        ddf = dd.read_csv(dataset_names, sep="\t", assume_missing=True, usecols=['time_received', 'vehicle_id', 'distance_along_trip', 'inferred_phase', 'next_scheduled_stop_distance', 'next_scheduled_stop_id'])
+        for file in dataset_names:
+            ddf = dd.read_csv(file, sep="\t", assume_missing=True, usecols=['time_received', 'vehicle_id', 'distance_along_trip', 'inferred_phase', 'next_scheduled_stop_distance', 'next_scheduled_stop_id'])
+            os.remove(file)
 
         # Filter out all phases that aren't LAYOVER_DURING and all rows with null
         ddf = ddf.loc[(ddf['inferred_phase'] != "LAYOVER_DURING")].dropna()
 
         #Test filter line
-        ddf = ddf.loc[(ddf['vehicle_id'] == 469.0) | (ddf['vehicle_id'] == 195.0)]
+        #ddf = ddf.loc[(ddf['vehicle_id'] == 469.0) | (ddf['vehicle_id'] == 195.0)]
 
         # Apply the sort_and_calc() function to each group separately
         group = ddf.groupby('vehicle_id')
