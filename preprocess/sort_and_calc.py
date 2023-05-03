@@ -1,7 +1,10 @@
 from datetime import datetime as dt, timedelta
 import pandas as pd
 
-def calc_data(partition):
+def sort_and_calc(partition):
+    #Sort the partition by 'time_received'
+    partition = partition.sort_values('time_received')
+
     data = pd.DataFrame(columns=['trip', 'distance', 'date', 'exit_time', 'arrive_time'])
 
     first = True

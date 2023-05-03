@@ -1,6 +1,5 @@
 import pandas as pd
 from datetime import datetime
-import sys
 
 def normalize(data):
     # Convert date feature to datetime format

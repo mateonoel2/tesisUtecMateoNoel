@@ -15,20 +15,20 @@ data = data.dropDuplicates()
 
 print("Number of rows:", data.count())
 
-# Rename a column
+# Rename target column
 data = data.withColumnRenamed("arrive_time", "label")
 
-# Prepare data for linear regression training
+# Prepare data for GPT regression training
 assembler = VectorAssembler(inputCols=data.columns[:-1], outputCol="features")
 data = assembler.transform(data).select("features", "label")
 
 # Split data into training and test sets
 train_data, test_data = data.randomSplit([0.8, 0.2], seed=21)
 
-# Set up the linear regression model
+# Set up the GBT regression model
 regressor = GBTRegressor(featuresCol="features", labelCol="label")
 
-# Train the linear regression model
+# Train the GBT regression model
 model = regressor.fit(train_data)
 
 # Make predictions on the test data
