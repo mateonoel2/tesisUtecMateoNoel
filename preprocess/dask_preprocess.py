@@ -23,7 +23,8 @@ if __name__ == '__main__':
     dataframes_bag = db.from_sequence(dataset_names).map(lambda fn: dd.read_csv(fn, sep="\t", assume_missing=True, usecols=['time_received', 'vehicle_id', 'distance_along_trip', 'inferred_phase', 'next_scheduled_stop_distance', 'next_scheduled_stop_id']))
     
     def process_data(ddf, client=None):
-        if client:
+        
+        if isinstance(ddf, dd.DataFrame):
             ddf = ddf.persist()
             wait(ddf)
 
