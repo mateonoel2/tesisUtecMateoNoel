@@ -23,11 +23,6 @@ if __name__ == '__main__':
     dataframes_bag = db.from_sequence(dataset_names).map(lambda fn: dd.read_csv(fn, sep="\t", assume_missing=True, usecols=['time_received', 'vehicle_id', 'distance_along_trip', 'inferred_phase', 'next_scheduled_stop_distance', 'next_scheduled_stop_id']))
     
     def process_data(ddf, client):
-
-        while not client:
-            client = Client()
-            wait([client])
-
         # Get the first value of the time_received column
         first_time_received = ddf['time_received'].head(1).values[0]
         date = first_time_received[0:10]
@@ -65,6 +60,6 @@ if __name__ == '__main__':
 
         return None
 
-    wait(dataframes_bag.map(process_data, client=client))
+    dataframes_bag.map(process_data, client==client).compute()
 
     client.close()
