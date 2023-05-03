@@ -5,8 +5,9 @@ from dist_fix import dist_fix
 from sort_and_calc import sort_and_calc
 import pandas as pd
 import pyarrow as pa
-from dask.distributed import Client, wait
+from dask.distributed import Client, get_client
 import dask.bag as db
+import time
 
 if __name__ == '__main__':    
 
@@ -23,6 +24,13 @@ if __name__ == '__main__':
     dataframes_bag = db.from_sequence(dataset_names).map(lambda fn: dd.read_csv(fn, sep="\t", assume_missing=True, usecols=['time_received', 'vehicle_id', 'distance_along_trip', 'inferred_phase', 'next_scheduled_stop_distance', 'next_scheduled_stop_id']))
     
     def process_data(ddf):
+        while True:
+            client = get_client()
+            if client:
+                break
+            else:
+                time.sleep(1) 
+        
         # Get the first value of the time_received column
         first_time_received = ddf['time_received'].head(1).values[0]
         date = first_time_received[0:10]
@@ -58,7 +66,7 @@ if __name__ == '__main__':
         ddf.to_parquet(f'../processed_datasets/{date}.parquet', engine='pyarrow', schema=partition_schema)
 
         print(f"Finished processing {date} dataset.")
-        
+
         return None
 
     dataframes_bag.map(process_data).compute()
