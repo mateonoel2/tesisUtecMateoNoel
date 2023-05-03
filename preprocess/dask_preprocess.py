@@ -67,12 +67,10 @@ if __name__ == '__main__':
 
     ddf = ddf.map_partitions(normalize, meta=pd.DataFrame(columns=['exit_stop', 'target_stop', 'day_of_week', 'day_of_month', 'month','distance', 'exit_time', 'arrive_time']))
     
-    ddf.visualize()
-    
     # Drop all groups and reset index
     pdf = ddf.compute()
 
     pdf = normalize2(pdf)
 
     # save the Pandas dataframe in Parquet format
-    pdf.to_parquet('../processed_datasets/test.parquet', engine='pyarrow')
+    pdf.to_parquet('../processed_datasets/processedData.parquet', engine='pyarrow')

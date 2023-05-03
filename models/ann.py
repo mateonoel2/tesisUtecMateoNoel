@@ -8,7 +8,7 @@ from pyspark.ml.evaluation import RegressionEvaluator
 spark = SparkSession.builder.appName("PySpark Regression ANN Example").getOrCreate()
 
 # Load data into a PySpark DataFrame
-data = spark.read.format("parquet").load("../processed_datasets/test.parquet")
+data = spark.read.format("parquet").load("../processed_datasets/processedData.parquet")
 data = data.drop('__index_level_0__')
 
 
