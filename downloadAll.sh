@@ -1,8 +1,11 @@
+wget http://s3.amazonaws.com/MTABusTime/AppQuest3/MTA-Bus-Time_.2014-08-01.txt.xz
+wget http://s3.amazonaws.com/MTABusTime/AppQuest3/MTA-Bus-Time_.2014-08-02.txt.xz
 wget http://s3.amazonaws.com/MTABusTime/AppQuest3/MTA-Bus-Time_.2014-08-03.txt.xz
 wget http://s3.amazonaws.com/MTABusTime/AppQuest3/MTA-Bus-Time_.2014-08-04.txt.xz
 wget http://s3.amazonaws.com/MTABusTime/AppQuest3/MTA-Bus-Time_.2014-08-05.txt.xz
 wget http://s3.amazonaws.com/MTABusTime/AppQuest3/MTA-Bus-Time_.2014-08-06.txt.xz
 wget http://s3.amazonaws.com/MTABusTime/AppQuest3/MTA-Bus-Time_.2014-08-07.txt.xz
+wget http://s3.amazonaws.com/MTABusTime/AppQuest3/MTA-Bus-Time_.2014-08-08.txt.xz
 wget http://s3.amazonaws.com/MTABusTime/AppQuest3/MTA-Bus-Time_.2014-08-09.txt.xz
 wget http://s3.amazonaws.com/MTABusTime/AppQuest3/MTA-Bus-Time_.2014-08-10.txt.xz
 wget http://s3.amazonaws.com/MTABusTime/AppQuest3/MTA-Bus-Time_.2014-08-11.txt.xz

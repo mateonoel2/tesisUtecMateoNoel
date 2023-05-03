@@ -27,12 +27,17 @@ def normalize(data):
     data.insert(0, 'target_stop', '')   
     data.insert(0, 'exit_stop', '')
      
-    data[['exit_stop', 'target_stop']] = data['trip'].apply(lambda x: pd.Series(['MTA_' + x.split('MTA_')[1], 'MTA_' + x.split('MTA_')[2]]))
+    data[['exit_stop', 'target_stop']] = data['trip'].apply(lambda x: pd.Series([x.split('MTA_')[1], x.split('MTA_')[2]]))
+
+    # convert to numeric data type
+    data['exit_stop'] = data['exit_stop'].astype(int)
+    data['target_stop'] = data['target_stop'].astype(int)
 
     data = data.drop('trip', axis=1)
 
     # Divide 'exit_time' and 'arrive_time' columns by 86400 to normalize to [0, 1] range
     data['exit_time'] = data['exit_time'] / 86400
     data['arrive_time'] = data['arrive_time'] / 86400
+    data['distance'] = data[['distance']] / 5000
 
     return data

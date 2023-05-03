@@ -3,14 +3,14 @@ from pyspark.sql import SparkSession
 from pyspark.ml.feature import VectorAssembler
 from pyspark.ml.regression import LinearRegression
 from pyspark.ml.evaluation import RegressionEvaluator
+import sys
 
 
 spark = SparkSession.builder.appName("PySpark Regression ANN Example").getOrCreate()
 
 # Load data into a PySpark DataFrame
-data = spark.read.format("parquet").load("../processed_datasets/processedData.parquet")
-data = data.drop('__index_level_0__')
-
+data = spark.read.format("parquet").load("../processed_datasets/test.parquet")
+data = data.drop('__null_dask_index__')
 
 # Rename a column
 data = data.withColumnRenamed("arrive_time", "label")
