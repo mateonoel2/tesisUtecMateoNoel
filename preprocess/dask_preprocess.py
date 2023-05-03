@@ -22,7 +22,7 @@ if __name__ == '__main__':
     # Create a Dask bag of Dask dataframes
     dataframes_bag = db.from_sequence(dataset_names).map(lambda fn: dd.read_csv(fn, sep="\t", assume_missing=True, usecols=['time_received', 'vehicle_id', 'distance_along_trip', 'inferred_phase', 'next_scheduled_stop_distance', 'next_scheduled_stop_id']))
     
-    def process_data(ddf):
+    def process_data(ddf, client):
 
         while not client:
             client = Client()
@@ -65,6 +65,6 @@ if __name__ == '__main__':
 
         return None
 
-    dataframes_bag.map(process_data).compute()
+    dataframes_bag.map(process_data, client=client).compute()
 
     client.close()
