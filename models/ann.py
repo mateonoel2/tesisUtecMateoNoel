@@ -12,6 +12,7 @@ spark = SparkSession.builder.appName("PySpark Regression ANN Example").getOrCrea
 
 data = spark.read.format("parquet").load("../processed_datasets/*.parquet")
 data = data.drop('__null_dask_index__')
+data = data.dropDuplicates()
 
 # Rename a column
 data = data.withColumnRenamed("arrive_time", "label")
