@@ -35,18 +35,26 @@ if __name__ == '__main__':
     try:
         for file in dataset_names:
             ddf = dd.read_csv(file, sep="\t", assume_missing=True, usecols=['time_received', 'vehicle_id', 'distance_along_trip', 'inferred_phase', 'next_scheduled_stop_distance', 'next_scheduled_stop_id'])
+            
+            # Filter out all phases that aren't LAYOVER_DURING and all rows with null
+            ddf = ddf.loc[(ddf['inferred_phase'] != "LAYOVER_DURING")].dropna()
+
+            #Test filter line
+            #ddf = ddf.loc[(ddf['vehicle_id'] == 469.0) | (ddf['vehicle_id'] == 195.0)]
+
+            # Apply the sort_and_calc() function to each group separately
+            group = ddf.groupby('vehicle_id')
+            ddf = group.apply(sort_and_calc, meta=pd.DataFrame(columns=['trip', 'distance', 'date', 'exit_time', 'arrive_time']))
+            ddf = ddf.reset_index(drop=True)
+
+            #Force Dask to execute the computations and return a Pandas dataframe
+            pdf = ddf.compute()
+
+            # Remove the file
             os.remove(file)
 
-        # Filter out all phases that aren't LAYOVER_DURING and all rows with null
-        ddf = ddf.loc[(ddf['inferred_phase'] != "LAYOVER_DURING")].dropna()
-
-        #Test filter line
-        #ddf = ddf.loc[(ddf['vehicle_id'] == 469.0) | (ddf['vehicle_id'] == 195.0)]
-
-        # Apply the sort_and_calc() function to each group separately
-        group = ddf.groupby('vehicle_id')
-        ddf = group.apply(sort_and_calc, meta=pd.DataFrame(columns=['trip', 'distance', 'date', 'exit_time', 'arrive_time']))
-        ddf = ddf.reset_index(drop=True)
+            # Convert the Pandas dataframe back to a Dask dataframe
+            ddf = dd.from_pandas(pdf, npartitions=32)
 
         # Apply the dist_fix() function to each group separately
         group = ddf.groupby('trip')
@@ -69,6 +77,7 @@ if __name__ == '__main__':
         
         # save the Pandas dataframe in Parquet format
         ddf.to_parquet('../processed_datasets/test.parquet', engine='pyarrow', schema=partition_schema)
+
     except dd.core.ShuffleError as e:
         logging.error(f"An error occurred: {e}")
         with open('error.log', 'a') as f:
