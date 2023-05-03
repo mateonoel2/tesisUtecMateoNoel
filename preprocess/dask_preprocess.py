@@ -57,8 +57,8 @@ if __name__ == '__main__':
         # Write processed data to file
         ddf.to_parquet(f'../processed_datasets/{date}.parquet', engine='pyarrow', schema=partition_schema)
 
-        # Compute the ddf after writing it to the Parquet file
-        ddf.compute()
+        # Compute the dataframe after writing it to disk
+        df = pd.read_parquet(f'../processed_datasets/{date}.parquet')
 
         print(f"Finished processing {date} dataset.")
         return None
