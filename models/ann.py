@@ -3,12 +3,14 @@ from pyspark.sql import SparkSession
 from pyspark.ml.feature import VectorAssembler
 from pyspark.ml.regression import LinearRegression
 from pyspark.ml.evaluation import RegressionEvaluator
+from pyspark.sql.types import StructType, StructField, StringType, IntegerType, FloatType
 
 
 spark = SparkSession.builder.appName("PySpark Regression ANN Example").getOrCreate()
 
-# Load data into a PySpark DataFrame
-data = spark.read.format("parquet").load("../processed_datasets/test.parquet")
+# Load data into a PySpark DataFrame using the specified schema
+
+data = spark.read.format("parquet").load("../processed_datasets/*.parquet")
 data = data.drop('__null_dask_index__')
 
 # Rename a column

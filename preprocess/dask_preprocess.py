@@ -64,7 +64,7 @@ if __name__ == '__main__':
         date = os.path.basename(dataset_name)[14:24]
 
         #Save the Dask dataframe in Parquet format
-        ddf.to_parquet(f'../processed_datasets/datasets.parquet/{date}.parquet', engine='pyarrow', schema=partition_schema)
+        ddf.to_parquet(f'../processed_datasets/{date}.parquet', engine='pyarrow', schema=partition_schema)
 
         # Empty the Dask DataFrame
         ddf = dd.from_pandas(pd.DataFrame(), npartitions=32)
