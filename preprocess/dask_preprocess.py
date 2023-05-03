@@ -22,7 +22,11 @@ if __name__ == '__main__':
     # Create a Dask bag of Dask dataframes
     dataframes_bag = db.from_sequence(dataset_names).map(lambda fn: dd.read_csv(fn, sep="\t", assume_missing=True, usecols=['time_received', 'vehicle_id', 'distance_along_trip', 'inferred_phase', 'next_scheduled_stop_distance', 'next_scheduled_stop_id']))
     
-    def process_data(ddf, client):
+    def process_data(ddf, client=None):
+        if client:
+            ddf = ddf.persist()
+            wait(ddf)
+
         # Get the first value of the time_received column
         first_time_received = ddf['time_received'].head(1).values[0]
         date = first_time_received[0:10]
@@ -53,10 +57,9 @@ if __name__ == '__main__':
             pa.field('arrive_time', pa.float64()),
             pa.field('__null_dask_index__', pa.int64())
         ])
-
+     
+        # Write processed data to file
         ddf.to_parquet(f'../processed_datasets/{date}.parquet', engine='pyarrow', schema=partition_schema)
-
-        print(f"Finished processing {date} dataset.")
 
         return None
 
