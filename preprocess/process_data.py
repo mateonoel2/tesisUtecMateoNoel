@@ -12,8 +12,6 @@ def process_data(ddf):
     # Filter out all phases that aren't LAYOVER_DURING and all rows with null
     ddf = ddf.loc[(ddf['inferred_phase'] != "LAYOVER_DURING")].dropna()
 
-    ddf = ddf.loc[(ddf['vehicle_id'] == 469.0) | (ddf['vehicle_id'] == 195.0)]
-    
     # Apply the sort_and_calc() function to each group separately
     group = ddf.groupby('vehicle_id')
     ddf = group.apply(sort_and_calc, meta=pd.DataFrame(columns=['trip', 'distance', 'date', 'exit_time', 'arrive_time']))
