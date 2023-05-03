@@ -3,9 +3,16 @@ import os
 from process_data import process_data
 from dask.distributed import Client
 import dask.bag as db
+import time
 
 if __name__ == '__main__':    
-    client = Client()
+    while True:
+        try:
+            #Exit the loop if a client is successfully created
+            client = Client()
+            break  
+        except:
+            time.sleep(1) 
 
     folder = "../datasets"
     datasets = os.listdir(folder)
