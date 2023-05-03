@@ -22,56 +22,52 @@ def dist_fix(df):
 
 if __name__ == '__main__':
     
-    # Initialize logging
-    logging.basicConfig(filename='error.log', level=logging.ERROR)
+    client = Client()
+
+    folder = "../datasets"
+    datasets = os.listdir(folder)
+
+    # Load your Dask DataFrame
+    dataset_names = []
+    for dataset in datasets: 
+        dataset_names.append(os.path.join(folder, dataset))
 
     try:
-        # Create Dask client
-        with Client() as client:
+        ddf = dd.read_csv(dataset_names, sep="\t", assume_missing=True, usecols=['time_received', 'vehicle_id', 'distance_along_trip', 'inferred_phase', 'next_scheduled_stop_distance', 'next_scheduled_stop_id'])
 
-            folder = "../datasets"
-            datasets = os.listdir(folder)
+        # Filter out all phases that aren't LAYOVER_DURING and all rows with null
+        ddf = ddf.loc[(ddf['inferred_phase'] != "LAYOVER_DURING")].dropna()
 
-            # Load your Dask DataFrame
-            dataset_names = []
-            for dataset in datasets: 
-                dataset_names.append(os.path.join(folder, dataset))
+        #Test filter line
+        ddf = ddf.loc[(ddf['vehicle_id'] == 469.0) | (ddf['vehicle_id'] == 195.0)]
 
-            ddf = dd.read_csv(dataset_names, sep="\t", assume_missing=True, usecols=['time_received', 'vehicle_id', 'distance_along_trip', 'inferred_phase', 'next_scheduled_stop_distance', 'next_scheduled_stop_id'])
+        # Apply the sort_and_calc() function to each group separately
+        group = ddf.groupby('vehicle_id')
+        ddf = group.apply(sort_and_calc, meta=pd.DataFrame(columns=['trip', 'distance', 'date', 'exit_time', 'arrive_time']))
+        ddf = ddf.reset_index(drop=True)
 
-            # Filter out all phases that aren't LAYOVER_DURING and all rows with null
-            ddf = ddf.loc[(ddf['inferred_phase'] != "LAYOVER_DURING")].dropna()
+        # Apply the dist_fix() function to each group separately
+        group = ddf.groupby('trip')
+        ddf = group.apply(dist_fix, meta=ddf._meta)
+        ddf = ddf.reset_index(drop=True)
 
-            #Test filter line
-            #ddf = ddf.loc[(ddf['vehicle_id'] == 469.0) | (ddf['vehicle_id'] == 195.0)]
-
-            # Apply the sort_and_calc() function to each group separately
-            group = ddf.groupby('vehicle_id')
-            ddf = group.apply(sort_and_calc, meta=pd.DataFrame(columns=['trip', 'distance', 'date', 'exit_time', 'arrive_time']))
-            ddf = ddf.reset_index(drop=True)
-
-            # Apply the dist_fix() function to each group separately
-            group = ddf.groupby('trip')
-            ddf = group.apply(dist_fix, meta=ddf._meta)
-            ddf = ddf.reset_index(drop=True)
-
-            ddf = ddf.map_partitions(normalize, meta=pd.DataFrame(columns=['exit_stop', 'target_stop', 'day_of_week', 'day_of_month', 'month','distance', 'exit_time', 'arrive_time']))
-            
-            partition_schema = pa.schema([
-                pa.field('exit_stop', pa.int64()),
-                pa.field('target_stop', pa.int64()),
-                pa.field('day_of_week', pa.int32()),
-                pa.field('day_of_month', pa.int32()),
-                pa.field('month', pa.int32()),
-                pa.field('distance', pa.float64()),
-                pa.field('exit_time', pa.float64()),
-                pa.field('arrive_time', pa.float64()),
-                pa.field('__null_dask_index__', pa.int64())
-            ])
-            
-
-            # save the Pandas dataframe in Parquet format
-            ddf.to_parquet('../processed_datasets/test.parquet', engine='pyarrow', schema=partition_schema)
-
-    except Exception as e:
+        ddf = ddf.map_partitions(normalize, meta=pd.DataFrame(columns=['exit_stop', 'target_stop', 'day_of_week', 'day_of_month', 'month','distance', 'exit_time', 'arrive_time']))
+        
+        partition_schema = pa.schema([
+            pa.field('exit_stop', pa.int64()),
+            pa.field('target_stop', pa.int64()),
+            pa.field('day_of_week', pa.int32()),
+            pa.field('day_of_month', pa.int32()),
+            pa.field('month', pa.int32()),
+            pa.field('distance', pa.float64()),
+            pa.field('exit_time', pa.float64()),
+            pa.field('arrive_time', pa.float64()),
+            pa.field('__null_dask_index__', pa.int64())
+        ])
+        
+        # save the Pandas dataframe in Parquet format
+        ddf.to_parquet('../processed_datasets/test.parquet', engine='pyarrow', schema=partition_schema)
+    except dd.core.ShuffleError as e:
         logging.error(f"An error occurred: {e}")
+        with open('error.log', 'a') as f:
+            f.write
