@@ -9,10 +9,8 @@ def sort_and_calc(partition):
 
     first = True
     is_in_progress = True
-    prev_time_to_stop: dt | None = None
 
     # iterate through each row in the dataframe
-
     for i in range(len(partition)-1):
 
         current = partition.iloc[[i]]
