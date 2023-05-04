@@ -10,11 +10,11 @@ import dask.bag as db
 import time
 import dask.config
 
-dask.config.set({'distributed.comm.timeouts.connect': '120m'})
+dask.config.set({'distributed.comm.timeouts.connect': '2h'})
 
 if __name__ == '__main__':    
 
-    client = Client(timeout="3h")
+    client = Client(timeout="3h", n_workers=80)
 
     folder = "../datasets"
     datasets = os.listdir(folder)
