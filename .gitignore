@@ -3,3 +3,4 @@
 **/__pycache__/**
 *.parquet
 **/tmp/**
+**/processed_datasets2/**
