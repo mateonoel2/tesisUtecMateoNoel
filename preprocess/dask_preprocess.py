@@ -24,13 +24,14 @@ if __name__ == '__main__':
     dataframes_bag = db.from_sequence(dataset_names).map(lambda fn: dd.read_csv(fn, sep="\t", assume_missing=True, usecols=['time_received', 'vehicle_id', 'distance_along_trip', 'inferred_phase', 'next_scheduled_stop_distance', 'next_scheduled_stop_id']))
     
     def process_data(ddf):
-        
+
         while True:
-            client = get_client()
-            if client:
+            try:
+                client = get_client()
                 break
-            else:
-                time.sleep(1) 
+            except RuntimeError as e:
+                print(f"Error: {e}. Waiting for new client...")
+                time.sleep(1)
         
         # Get the first value of the time_received column
         first_time_received = ddf['time_received'].head(1).values[0]
