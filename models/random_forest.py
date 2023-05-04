@@ -17,7 +17,7 @@ print("Number of rows:", data.count())
 # Rename a column
 data = data.withColumnRenamed("arrive_time", "label")
 
-# Prepare data for linear regression training
+# Prepare data for random forest regression training
 assembler = VectorAssembler(inputCols=data.columns[:-1], outputCol="features")
 data = assembler.transform(data).select("features", "label")
 
@@ -27,7 +27,7 @@ train_data, test_data = data.randomSplit([0.8, 0.2], seed=21)
 # Set up the Random Forest regression model
 regressor = RandomForestRegressor(featuresCol="features", labelCol="label")
 
-# Train the linear regression model
+# Train the random forest regression model
 model = regressor.fit(train_data)
 
 # Make predictions on the test data
