@@ -35,7 +35,6 @@ def normalize(data):
 
     data = data.drop('trip', axis=1)
 
-
     data['distance'] = data[['distance']] / 5000
 
     return data

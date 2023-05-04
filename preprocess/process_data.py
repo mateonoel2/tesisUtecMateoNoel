@@ -6,7 +6,6 @@ import pyarrow as pa
 from dask.distributed import get_client
 import time
 
-
 def process_data(ddf):
 
     while True:
