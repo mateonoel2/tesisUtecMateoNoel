@@ -8,6 +8,9 @@ import pyarrow as pa
 from dask.distributed import Client, get_client
 import dask.bag as db
 import time
+import dask.config
+
+dask.config.set({'distributed.comm.timeouts.connect': '120m'})
 
 if __name__ == '__main__':    
 
