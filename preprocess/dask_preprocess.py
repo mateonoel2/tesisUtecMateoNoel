@@ -14,7 +14,7 @@ dask.config.set({'distributed.comm.timeouts.connect': '120m'})
 
 if __name__ == '__main__':    
 
-    client = Client()
+    client = Client(timeout="3h")
 
     folder = "../datasets"
     datasets = os.listdir(folder)
