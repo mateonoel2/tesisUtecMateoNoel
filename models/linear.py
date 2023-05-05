@@ -1,6 +1,7 @@
 from pyspark.sql import SparkSession
 from pyspark.ml.regression import LinearRegression
 from pyspark.ml.evaluation import RegressionEvaluator
+from pyspark.ml.feature import VectorAssembler
 import sys
 
 # Define a function to handle errors during model training
@@ -16,14 +17,18 @@ if __name__ == '__main__':
         .config("spark.driver.memory", "20g") \
         .config("spark.executor.memory", "90g") \
         .config("spark.executor.instances", "1") \
-        .config("spark.executor.cores", "79") \
+        .config("spark.executor.cores", "80") \
         .config("spark.driver.extraJavaOptions", "-XX:-UseGCOverheadLimit") \
         .config("spark.executor.extraJavaOptions", "-XX:-UseGCOverheadLimit") \
         .getOrCreate()
         
         # Load data from Parquet
-        data = spark.read.parquet("../processed_datasets2")
-
+        data = spark.read.parquet("../processed_datasets2/dataset")
+        
+        # Prepare data for regression training
+        assembler = VectorAssembler(inputCols=data.columns[:-1], outputCol="features")
+        data = assembler.transform(data).select("features", "label")
+        
         # Split data into training and test sets
         train_data, test_data = data.randomSplit([0.8, 0.2], seed=21)
 

@@ -1,7 +1,6 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import udf
 from datetime import datetime, timedelta
-from pyspark.ml.feature import VectorAssembler
 import os
 import sys
 
@@ -23,9 +22,8 @@ if __name__ == '__main__':
         .config("spark.executor.extraJavaOptions", "-XX:-UseGCOverheadLimit") \
         .getOrCreate()
 
-        N = 92
         start_date = datetime(2014, 8, 1)
-        end_date = start_date + timedelta(days=N-1)
+        end_date = datetime(2014, 10, 31)
 
         date_range = [start_date + timedelta(days=x) for x in range((end_date-start_date).days + 1)]
         date_range_str = [date.strftime("%Y-%m-%d") for date in date_range]
@@ -50,8 +48,10 @@ if __name__ == '__main__':
         target_stops = data.select("target_stop").distinct().rdd.flatMap(lambda x: x).collect()
 
         all_stops = list(set(exit_stops + target_stops))
+
         # Create a mapping from the old values to the new values
         mapping = dict(zip(all_stops, range(1, len(all_stops) + 1)))
+
         # Create UDFs to apply the mapping to each column
         exit_stop_mapping = udf(lambda exit_stop: mapping[exit_stop])
         target_stop_mapping = udf(lambda target_stop: mapping[target_stop])
@@ -64,13 +64,9 @@ if __name__ == '__main__':
         # Rename a column
         data = data.withColumnRenamed("arrive_time", "label")
 
-        # Prepare data for regression training
-        assembler = VectorAssembler(inputCols=data.columns[:-1], outputCol="features")
-        data = assembler.transform(data).select("features", "label")
-
         data = data.coalesce(1)
 
-        data.write.format("parquet").mode('overwrite').save("../processed_datasets2")
+        data.write.format("parquet").save("../processed_datasets2/dataset")
 
     except Exception as e:
         handle_error(e)
