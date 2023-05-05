@@ -33,12 +33,11 @@ def normalize(data):
     # convert to numeric data type
     data['exit_stop'] = data['exit_stop'].astype(int)
     data['target_stop'] = data['target_stop'].astype(int)
+    data['first_stop'] = data['first_stop'].astype(int)
 
     data = data.drop('trip', axis=1)
 
     data['distance'] = data[['distance']] / 5000
-
-
-    print(data.head)
-    time.sleep(10000)
+    data['total_distance'] =  data[['total_distance']] / 5000
+   
     return data

@@ -50,6 +50,8 @@ def sort_and_calc(partition):
             if (round(dist_two_times) != round(dist_next_stop_from_current - dist_next_stop_from_next)):
                     while(next_stop_from_current==next_stop_from_next):
                         i+=1
+                        if(i+1>=(len(partition)-1)):
+                            break
                         current = partition.iloc[[i]]
                         next = partition.iloc[[i+1]]
                         next_stop_from_current= current["next_scheduled_stop_id"].values[0]
