@@ -17,7 +17,7 @@ if __name__ == '__main__':
         .config("spark.driver.memory", "20g") \
         .config("spark.executor.memory", "90g") \
         .config("spark.executor.instances", "10") \
-        .config("spark.executor.cores", "7") \
+        .config("spark.executor.cores", "8") \
         .config("spark.driver.extraJavaOptions", "-XX:-UseGCOverheadLimit") \
         .config("spark.executor.extraJavaOptions", "-XX:-UseGCOverheadLimit") \
         .getOrCreate()

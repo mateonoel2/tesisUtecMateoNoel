@@ -10,7 +10,7 @@ def process_data(ddf):
 
     while True:
         try:
-            client = get_client()
+            get_client()
             break
         except RuntimeError as e:
             print(f"Error: {e}. Waiting for new client...")
