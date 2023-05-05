@@ -3,7 +3,9 @@ import os
 from process_data import process_data
 from dask.distributed import Client
 import dask.bag as db
+import time
 import dask.config
+import sys
 
 if __name__ == '__main__':    
 
@@ -13,12 +15,12 @@ if __name__ == '__main__':
     datasets = os.listdir(folder)
     dataset_names = []
 
-    for dataset in datasets:
+    for dataset in datasets[:1]: #1 dataset
         dataset_names.append(os.path.join(folder, dataset))
     
     # Create a Dask bag of Dask dataframes
     dataframes_bag = db.from_sequence(dataset_names).map(lambda fn: dd.read_csv(fn, sep="\t", assume_missing=True, usecols=['time_received', 'vehicle_id', 'distance_along_trip', 'inferred_phase', 'next_scheduled_stop_distance', 'next_scheduled_stop_id']))
-    
+
     dataframes_bag.map(process_data).compute()
 
     print("SUCCESS")

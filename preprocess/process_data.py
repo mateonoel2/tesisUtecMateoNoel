@@ -5,6 +5,7 @@ import pandas as pd
 import pyarrow as pa
 from dask.distributed import get_client
 import time
+import sys
 
 def process_data(ddf):
 
@@ -15,7 +16,7 @@ def process_data(ddf):
         except RuntimeError as e:
             print(f"Error: {e}. Waiting for new client...")
             time.sleep(1)
-
+    
     # Get the first value of the time_received column
     first_time_received = ddf['time_received'].head(1).values[0]
     date = first_time_received[0:10]
