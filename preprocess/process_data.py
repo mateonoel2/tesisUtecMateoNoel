@@ -26,7 +26,7 @@ def process_data(ddf):
 
     # Apply the sort_and_calc() function to each group separately
     group = ddf.groupby('vehicle_id')
-    ddf = group.apply(sort_and_calc, meta=pd.DataFrame(columns=['trip', 'distance', 'date', 'exit_time', 'arrive_time']))
+    ddf = group.apply(sort_and_calc, meta=pd.DataFrame(columns=['first_stop','trip', 'distance','total_distance', 'date', 'exit_time', 'arrive_time']))
     ddf = ddf.reset_index(drop=True)
 
     # Apply the dist_fix() function to each group separately
@@ -34,15 +34,17 @@ def process_data(ddf):
     ddf = group.apply(dist_fix, meta=ddf._meta)
     ddf = ddf.reset_index(drop=True)
 
-    ddf = ddf.map_partitions(normalize, meta=pd.DataFrame(columns=['exit_stop', 'target_stop', 'day_of_week', 'day_of_month', 'month','distance', 'exit_time', 'arrive_time']))
+    ddf = ddf.map_partitions(normalize, meta=pd.DataFrame(columns=['first_stop','exit_stop', 'target_stop', 'day_of_week', 'day_of_month', 'month','distance','total_distance','exit_time', 'arrive_time']))
 
     partition_schema = pa.schema([
+        pa.field('first_stop', pa.int64()),
         pa.field('exit_stop', pa.int64()),
         pa.field('target_stop', pa.int64()),
         pa.field('day_of_week', pa.int32()),
         pa.field('day_of_month', pa.int32()),
         pa.field('month', pa.int32()),
         pa.field('distance', pa.float64()),
+        pa.field('total_distance', pa.float64()),
         pa.field('exit_time', pa.float64()),
         pa.field('arrive_time', pa.float64()),
         pa.field('__null_dask_index__', pa.int64())

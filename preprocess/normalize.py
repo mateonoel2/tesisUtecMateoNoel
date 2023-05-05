@@ -1,5 +1,6 @@
 import pandas as pd
 from datetime import datetime
+import time
 
 def time_to_seconds(time_obj):
     midnight = datetime.combine(datetime.today(), datetime.min.time())
@@ -37,4 +38,7 @@ def normalize(data):
 
     data['distance'] = data[['distance']] / 5000
 
+
+    print(data.head)
+    time.sleep(10000)
     return data
