@@ -5,10 +5,8 @@ import pandas as pd
 import pyarrow as pa
 from dask.distributed import get_client
 import time
-import sys
 
 def process_data(ddf):
-
     while True:
         try:
             get_client()
@@ -21,9 +19,10 @@ def process_data(ddf):
     first_time_received = ddf['time_received'].head(1).values[0]
     date = first_time_received[0:10]
 
+    ddf = ddf.repartition(npartitions=15)
+
     # Filter out all phases that aren't LAYOVER_DURING and all rows with null
     ddf = ddf.loc[(ddf['inferred_phase'] == "IN_PROGRESS")].dropna()
-    ddf = ddf.loc[(ddf['vehicle_id'] == 202.0)] 
     ddf = ddf.drop(columns='inferred_phase')
 
     # Apply the sort_and_calc() function to each group separately

@@ -1,16 +1,10 @@
 from datetime import datetime as dt, timedelta
 import pandas as pd
-import time
 
 def sort_and_calc(partition):
     
     #Sort the partition by 'time_received'
     partition = partition.sort_values('time_received')
-    
-    #set the display options to show all rows and columns
-    pd.set_option('display.max_rows', None)
-    pd.set_option('display.max_columns', None) 
-    pd.set_option('display.width', None)
 
     #Clean unusefull data
     partition = partition.drop_duplicates(subset=['distance_along_trip'])

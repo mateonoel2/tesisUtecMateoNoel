@@ -1,6 +1,5 @@
 import pandas as pd
 from datetime import datetime
-import time
 
 def time_to_seconds(time_obj):
     midnight = datetime.combine(datetime.today(), datetime.min.time())

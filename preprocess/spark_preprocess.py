@@ -55,11 +55,13 @@ if __name__ == '__main__':
         # Create UDFs to apply the mapping to each column
         exit_stop_mapping = udf(lambda exit_stop: mapping[exit_stop])
         target_stop_mapping = udf(lambda target_stop: mapping[target_stop])
+        first_stop_mapping = udf(lambda first_stop: mapping[first_stop])
 
         # Apply the mapping to the DataFrame using withColumn
         data = data \
             .withColumn("exit_stop", exit_stop_mapping(data["exit_stop"]).cast("integer")) \
-            .withColumn("target_stop", target_stop_mapping(data["target_stop"]).cast("integer"))
+            .withColumn("target_stop", target_stop_mapping(data["target_stop"]).cast("integer")) \
+            .withColumn("first_stop", first_stop_mapping(data["first_stop"]).cast("integer"))
         
         # Rename a column
         data = data.withColumnRenamed("arrive_time", "label")
