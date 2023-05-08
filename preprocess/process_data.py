@@ -19,8 +19,6 @@ def process_data(ddf):
     first_time_received = ddf['time_received'].head(1).values[0]
     date = first_time_received[0:10]
 
-    ddf = ddf.repartition(npartitions=15)
-
     # Filter out all phases that aren't LAYOVER_DURING and all rows with null
     ddf = ddf.loc[(ddf['inferred_phase'] == "IN_PROGRESS")].dropna()
     ddf = ddf.drop(columns='inferred_phase')
@@ -50,10 +48,12 @@ def process_data(ddf):
         pa.field('arrive_time', pa.float64()),
         pa.field('__null_dask_index__', pa.int64())
     ])
- 
+
+    ddf = ddf.repartition(npartitions=10)
+
     # Write processed data to file
     ddf.to_parquet(f'../processed_datasets/{date}.parquet', engine='pyarrow', schema=partition_schema)
 
     print(f"Finished processing {date} dataset.")
 
-    return None
+    return 1
