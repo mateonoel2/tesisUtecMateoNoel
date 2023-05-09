@@ -2,6 +2,7 @@ from pyspark.sql import SparkSession
 from pyspark.ml.regression import LinearRegression
 from pyspark.ml.evaluation import RegressionEvaluator
 from pyspark.ml.feature import VectorAssembler
+from pyspark.sql.functions import abs
 import sys
 
 # Define a function to handle errors during model training
@@ -16,8 +17,8 @@ if __name__ == '__main__':
         .appName("PySpark Linear Regression") \
         .config("spark.driver.memory", "20g") \
         .config("spark.executor.memory", "90g") \
-        .config("spark.executor.instances", "1") \
-        .config("spark.executor.cores", "80") \
+        .config("spark.executor.instances", "80") \
+        .config("spark.executor.cores", "1") \
         .config("spark.driver.extraJavaOptions", "-XX:-UseGCOverheadLimit") \
         .config("spark.executor.extraJavaOptions", "-XX:-UseGCOverheadLimit") \
         .getOrCreate()
@@ -41,6 +42,21 @@ if __name__ == '__main__':
         # Make predictions on the test data
         predictions = model.transform(test_data)
 
+        # Add a new column with the absolute difference between label and prediction
+        predictions = predictions.withColumn("abs_diff", abs(predictions["label"] - predictions["prediction"]))
+
+        total_count = predictions.count()
+
+        # Calculate the percentage of data within a ranges
+
+        ranges = [(10*60)/86400, (5*60)/86400, 60/86400, 30/86400]
+
+        # Iterate over the ranges and calculate the percentage of data within each range
+        for r in ranges:
+            within_range_count = predictions.filter(predictions["abs_diff"] <= r).count()
+            percent_within_range = within_range_count / total_count * 100
+            print("{:.2f}% of data is within a range of {:.0f} seconds".format(percent_within_range, r * 86400))
+
         # Evaluate the model using mean squared error and r2
         evaluator = RegressionEvaluator(labelCol="label", predictionCol="prediction", metricName="rmse")
         rmse = evaluator.evaluate(predictions)
@@ -49,6 +65,7 @@ if __name__ == '__main__':
         evaluator = RegressionEvaluator(labelCol="label", predictionCol="prediction", metricName="r2")
         r2 = evaluator.evaluate(predictions)
         print("R-squared (R2) = {:.4f}".format(r2))
+
 
     except Exception as e:
         handle_error(e)

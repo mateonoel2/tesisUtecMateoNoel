@@ -32,7 +32,6 @@ def normalize(data):
     # convert to numeric data type
     data['exit_stop'] = data['exit_stop'].astype(int)
     data['target_stop'] = data['target_stop'].astype(int)
-    data['first_stop'] = data['first_stop'].astype(int)
 
     data = data.drop('trip', axis=1)
    

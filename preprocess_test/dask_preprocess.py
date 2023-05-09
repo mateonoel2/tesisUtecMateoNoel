@@ -18,9 +18,10 @@ if __name__ == '__main__':
     counter = 0
     
     results = []
+    
 
-    for i in range(counter, num_datasets):
-        dataset_name = os.path.join(folder, datasets[i])
+    for i in range(0, num_datasets): #(2 datasets)
+        dataset_name = os.path.join(folder, datasets[i]) 
 
         # Create a Dask dataframe from the CSV file
         ddf = dd.read_csv(dataset_name, sep="\t", assume_missing=True,
@@ -30,7 +31,7 @@ if __name__ == '__main__':
         # submit the computation to the cluster
         future = client.submit(process_data, ddf, priority=num_datasets-counter-1)
         results.append(future)
-        time.sleep(1)
+        time.sleep(10)
 
     #wait for the results  
     wait(results)
