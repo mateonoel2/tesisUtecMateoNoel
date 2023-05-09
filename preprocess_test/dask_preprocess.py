@@ -20,7 +20,7 @@ if __name__ == '__main__':
     results = []
     
 
-    for i in range(0, num_datasets): #(2 datasets)
+    for i in range(0, 1): #(2 datasets)
         dataset_name = os.path.join(folder, datasets[i]) 
 
         # Create a Dask dataframe from the CSV file

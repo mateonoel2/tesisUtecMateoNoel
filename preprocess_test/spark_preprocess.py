@@ -2,6 +2,7 @@ from pyspark.sql import SparkSession
 from pyspark.sql.functions import udf, min, max, lit, asc
 from pyspark.sql.types import DoubleType
 from datetime import datetime, timedelta
+from spark_get_total_dist import total_distance
 import os
 import sys
 
@@ -13,6 +14,10 @@ def handle_error(e):
 if __name__ == '__main__':    
     try:
         # Create a SparkSession
+        # spark = SparkSession.builder \
+        # .appName("Pyspark preprocess") \
+        # .getOrCreate()
+
         spark = SparkSession.builder \
         .appName("PySpark preprocess") \
         .config("spark.driver.memory", "20g") \
@@ -42,7 +47,8 @@ if __name__ == '__main__':
         # Load data from Parquet
         data = spark.read.format("parquet").load(valid_paths)
         data = data.coalesce(10)
-        data = data.drop('__null_dask_index__').dropna().dropDuplicates().coalesce(10)
+        #data = data.drop('__null_dask_index__').dropna().dropDuplicates().coalesce(10)
+        data = data.dropna().dropDuplicates().coalesce(10)
 
         # Get the unique values from exit_stop column
         exit_stops = data.select("exit_stop").distinct().rdd.flatMap(lambda x: x).collect()
@@ -69,13 +75,21 @@ if __name__ == '__main__':
 
         #Normalize distances
         min_value = data.agg(min("distance")).collect()[0][0]
-        max_value = data.agg(max("total_distance")).collect()[0][0]
+        max_value = data.agg(max("distance")).collect()[0][0]
+        #max_value = data.agg(max("total_distance")).collect()[0][0]
         
         # Define a UDF to normalize a column
         normalize_udf = udf(lambda x, min_val, max_val: (x - min_val) / (max_val - min_val), DoubleType())
 
         data = data.withColumn("distance", normalize_udf("distance", lit(min_value), lit(max_value)))
-        data = data.withColumn("total_distance", normalize_udf("total_distance", lit(min_value), lit(max_value)))
+        #data = data.withColumn("total_distance", normalize_udf("total_distance", lit(min_value), lit(max_value)))
+
+
+        #data.write.format("parquet").save("../processed_datasets2/dataset")
+
+        #data = data.withColumn("total_distance", lit(0).cast("float")).select("total_distance", *data.columns)
+        
+        #data = total_distance(data)
 
         #Ordenar por tiempo
         data = data.orderBy(asc("month"), asc("day_of_month"), asc("exit_time"))
@@ -83,7 +97,7 @@ if __name__ == '__main__':
         data = data.coalesce(1)
 
         data.write.format("parquet").save("../processed_datasets2/dataset")
-        
+
     except Exception as e:
         handle_error(e)
     finally:

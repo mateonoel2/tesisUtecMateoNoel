@@ -50,7 +50,7 @@ def process_data(ddf):
     ddf = ddf.drop(columns='inferred_phase')
 
     #probar con dos vehicle id
-    #ddf = ddf.loc[(ddf['vehicle_id'] == 469.0)]
+    ddf = ddf.loc[(ddf['vehicle_id'] == 469.0)]
 
     # Apply the sort_and_calc() function to each group separately
     group = ddf.groupby('vehicle_id')
@@ -71,14 +71,16 @@ def process_data(ddf):
     ddf = ddf.compute()
 
     routes = {elem: {elem} for elem in first_stops}
+    ddf.insert(0, 'total_distance', 0)
     ddf.insert(0, 'first_stop', None)
-
+  
     while ddf['first_stop'].isna().any():
         for route_name, stops in routes.items():
             mask = ddf['exit_stop'].isin(stops)
             new_stops = ddf.loc[mask, 'target_stop'].to_list()
             routes[route_name] = routes[route_name] | set(new_stops)
             ddf.loc[mask, 'first_stop'] = ddf.loc[mask, 'first_stop'].fillna(route_name)
+            #ddf.loc[mask, 'total_distance'] + ddf.loc[mask, 'first_stop'].fillna(ddf.loc[mask, 'total_distance'] + ddf.loc[mask, 'distance'])
 
     ddf['target_stop'] = ddf['target_stop'].astype(int)
     
@@ -95,7 +97,7 @@ def process_data(ddf):
 
 
     partition_schema = pa.schema([
-        #pa.field('total_distance', pa.float64()),
+        pa.field('total_distance', pa.float64()),
         pa.field('first_stop', pa.int64()),
         pa.field('exit_stop', pa.int64()),
         pa.field('target_stop', pa.int64()),

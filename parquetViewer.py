@@ -7,6 +7,6 @@ if __name__ == '__main__':
     .getOrCreate()
 
     data = spark.read.format("parquet").load("processed_datasets/2014-09-10.parquet")
-    data = data.drop("__null_dask_index__")
+    # data = data.drop("__null_dask_index__")
 
     data.show(1000)
