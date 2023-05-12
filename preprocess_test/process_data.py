@@ -47,7 +47,7 @@ def process_data(ddf):
     # Apply the sort_and_calc() function to each group separately
     group_v = ddf.groupby('vehicle_id')
     ddf = group_v.apply(sort_and_calc, meta=pd.DataFrame(columns=['vehicle_id', 'trip', 'distance', 'date', 'exit_time', 'arrive_time']))
-    ddf.reset_index(drop=True)
+    ddf = ddf.reset_index(drop=True)
 
     # Apply the dist_fix() function to each group separately
     group = ddf.groupby('trip')
