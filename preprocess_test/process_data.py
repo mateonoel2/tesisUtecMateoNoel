@@ -4,33 +4,25 @@ from normalize import normalize
 import pandas as pd
 import pyarrow as pa
 from dask.distributed import get_client
-import dask.dataframe as dd
 import time
 
-# def total_distance(df):
-#     df['total_distance'] = df['total_distance'].astype(float)
-#     unique_stops = df['first_stop'].unique()
+def total_distances(ddf, routes):
+    ddf.insert(0, 'first_stop', None)
+    ddf.insert(0, 'total_distance', 0)
     
-#     for stop in unique_stops:
-#         stack = [(stop, 0)]
-#         processed_stops = set()
-#         while stack:
-#             curr_stop, curr_distance = stack.pop()
-#             curr_distance += df.loc[df['exit_stop'] == curr_stop, 'distance']
-#             df.loc[df['exit_stop'] == curr_stop, 'total_distance'] =  curr_distance
-#             target_stops = df.loc[df['exit_stop'] == curr_stop, 'target_stop'].tolist()
-#             for target_stop in target_stops:
-#                 if target_stop not in processed_stops:
-#                     processed_stops.add(target_stop)
-#                     stack.append((target_stop, curr_distance))
+  
+    while ddf['first_stop'].isna().any():
+        for route_name, stops in routes.items():
+            mask = ddf['exit_stop'].isin(stops) & ddf['first_stop'].isna()
+            mask2 = ddf['exit_stop'].isin(stops)
+            total_distance = ddf.loc[mask2, 'total_distance'].max()
 
-#     df = df.dropna()
-#     return df
-
-def get_first_stops(df):
-    mask = ~df['exit_stop'].isin(df['target_stop'])
-    first_stops = df['exit_stop'][mask]
-    return first_stops.drop_duplicates()
+            new_stops = ddf.loc[mask, 'target_stop'].to_list()   
+            ddf.loc[mask, 'total_distance'] = ddf.loc[mask, 'distance'] + total_distance
+            routes[route_name] = routes[route_name] | set(new_stops)
+            ddf.loc[mask,'first_stop'] = route_name
+    
+    return ddf
 
 def process_data(ddf):
     while True:
@@ -49,70 +41,47 @@ def process_data(ddf):
     ddf = ddf.loc[(ddf['inferred_phase'] == "IN_PROGRESS")].dropna()
     ddf = ddf.drop(columns='inferred_phase')
 
-    #probar con dos vehicle id
-    ddf = ddf.loc[(ddf['vehicle_id'] == 469.0)]
+    #use only two vehicles
+    #ddf = ddf.loc[(ddf['vehicle_id'] == 469.0) | (ddf['vehicle_id'] == 195.0)]
 
     # Apply the sort_and_calc() function to each group separately
-    group = ddf.groupby('vehicle_id')
-    ddf = group.apply(sort_and_calc, meta=pd.DataFrame(columns=['trip', 'distance', 'date', 'exit_time', 'arrive_time']))
-    ddf = ddf.reset_index(drop=True)
+    group_v = ddf.groupby('vehicle_id')
+    ddf = group_v.apply(sort_and_calc, meta=pd.DataFrame(columns=['vehicle_id', 'trip', 'distance', 'date', 'exit_time', 'arrive_time']))
+    ddf.reset_index(drop=True)
 
     # Apply the dist_fix() function to each group separately
     group = ddf.groupby('trip')
     ddf = group.apply(dist_fix, meta=ddf._meta)
     ddf = ddf.reset_index(drop=True)
 
-    ddf = ddf.map_partitions(normalize, meta=pd.DataFrame(columns=['exit_stop', 'target_stop', 'day_of_week', 'day_of_month', 'month','distance', 'exit_time', 'arrive_time']))
+    ddf = ddf.map_partitions(normalize, meta=pd.DataFrame(columns=['exit_stop', 'target_stop', 'day_of_week', 'day_of_month', 'month','vehicle_id','distance', 'exit_time', 'arrive_time']))
     
-    #find starting stopse
-    first_stops = ddf.map_partitions(get_first_stops)
-    first_stops = first_stops.compute()
-    
-    ddf = ddf.compute()
+    df = ddf.compute()
+    mask = ~df['exit_stop'].isin(df['target_stop'])
+    first_stops = set(df['exit_stop'][mask])
 
     routes = {elem: {elem} for elem in first_stops}
-    ddf.insert(0, 'total_distance', 0)
-    ddf.insert(0, 'first_stop', None)
-  
-    while ddf['first_stop'].isna().any():
-        for route_name, stops in routes.items():
-            mask = ddf['exit_stop'].isin(stops)
-            new_stops = ddf.loc[mask, 'target_stop'].to_list()
-            routes[route_name] = routes[route_name] | set(new_stops)
-            ddf.loc[mask, 'first_stop'] = ddf.loc[mask, 'first_stop'].fillna(route_name)
-            #ddf.loc[mask, 'total_distance'] + ddf.loc[mask, 'first_stop'].fillna(ddf.loc[mask, 'total_distance'] + ddf.loc[mask, 'distance'])
 
-    ddf['target_stop'] = ddf['target_stop'].astype(int)
-    
-    #ddf.insert(0, 'total_distance', None)
-  
-    # ddf2 = dd.from_pandas(ddf, npartitions=10)
-    
-    # # Apply the total_distance function to each group separately
-    # group = ddf2.groupby('first_stop')
+    group_v = ddf.groupby('vehicle_id')
+    ddf = group_v.apply(total_distances, routes, meta=pd.DataFrame(columns=['total_distance','first_stop','exit_stop', 'target_stop', 'day_of_week', 'day_of_month', 'month','vehicle_id' ,'distance', 'exit_time', 'arrive_time']))
+    ddf = ddf.reset_index(drop=True)
 
-    # ddf2 = group.apply(total_distance, meta=ddf2._meta)
-  
-    # ddf2 = ddf2.reset_index(drop=True)
-
+    ddf = ddf.compute()
 
     partition_schema = pa.schema([
-        pa.field('total_distance', pa.float64()),
+        pa.field('vehicle_id', pa.int32()),
+        pa.field('month', pa.int32()),
+        pa.field('day_of_month', pa.int32()),
+        pa.field('day_of_week', pa.int32()),
         pa.field('first_stop', pa.int64()),
         pa.field('exit_stop', pa.int64()),
         pa.field('target_stop', pa.int64()),
-        pa.field('day_of_week', pa.int32()),
-        pa.field('day_of_month', pa.int32()),
-        pa.field('month', pa.int32()),
+        pa.field('total_distance', pa.float64()),
         pa.field('distance', pa.float64()),
         pa.field('exit_time', pa.float64()),
         pa.field('arrive_time', pa.float64()),
     ])
     
-
-    # print(ddf.head)
-    # time.sleep(100)
-    # Write processed data to file
     ddf.to_parquet(f'../processed_datasets/{date}.parquet', engine='pyarrow', schema=partition_schema)
 
     print(f"Finished processing {date} dataset.")

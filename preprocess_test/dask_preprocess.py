@@ -15,21 +15,20 @@ if __name__ == '__main__':
     datasets = os.listdir(folder)
 
     num_datasets = len(datasets)
-    counter = 0
     
     results = []
     
-
-    for i in range(0, 1): #(2 datasets)
+    for i in range(0, num_datasets):
         dataset_name = os.path.join(folder, datasets[i]) 
 
         # Create a Dask dataframe from the CSV file
         ddf = dd.read_csv(dataset_name, sep="\t", assume_missing=True,
-                        usecols=['time_received', 'vehicle_id', 'distance_along_trip', 'inferred_phase', 'next_scheduled_stop_distance', 'next_scheduled_stop_id']
+                        usecols=['time_received', 'vehicle_id', 'distance_along_trip', 'inferred_phase',
+                                  'next_scheduled_stop_distance', 'next_scheduled_stop_id']
                         )
                 
         # submit the computation to the cluster
-        future = client.submit(process_data, ddf, priority=num_datasets-counter-1)
+        future = client.submit(process_data, ddf, priority=num_datasets-i-1)
         results.append(future)
         time.sleep(10)
 

@@ -94,4 +94,5 @@ def sort_and_calc(partition):
                 prev_along_distance = next_distance 
                 next_stop_from_prev = next_stop_from_current
 
+    data.insert(0, 'vehicle_id', partition['vehicle_id'][0])
     return data
