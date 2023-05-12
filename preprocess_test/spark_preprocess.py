@@ -24,9 +24,7 @@ if __name__ == '__main__':
 
         start_date = datetime(2014, 8, 1)
         end_date = datetime(2014, 10, 31)
-        start_date = datetime(2014, 9, 10)
-        end_date = datetime(2014, 9, 10)
-
+        
         date_range = [start_date + timedelta(days=x) for x in range((end_date-start_date).days + 1)]
         date_range_str = [date.strftime("%Y-%m-%d") for date in date_range]
 

@@ -3,6 +3,7 @@ from sort_and_calc import sort_and_calc
 from normalize import normalize
 import pandas as pd
 import pyarrow as pa
+import dask.dataframe as dd
 from dask.distributed import get_client
 import time
 
@@ -62,11 +63,13 @@ def process_data(ddf):
 
     routes = {elem: {elem} for elem in first_stops}
 
-    group_v = ddf.groupby('vehicle_id')
-    ddf = group_v.apply(total_distances, routes, meta=pd.DataFrame(columns=['total_distance','first_stop','exit_stop', 'target_stop', 'day_of_week', 'day_of_month', 'month','vehicle_id' ,'distance', 'exit_time', 'arrive_time']))
-    ddf = ddf.reset_index(drop=True)
+    ddf2 = dd.from_pandas(df, npartitions=20)
 
-    ddf = ddf.compute()
+    group_v = ddf2.groupby('vehicle_id')
+    ddf2 = group_v.apply(total_distances, routes, meta=pd.DataFrame(columns=['total_distance','first_stop','exit_stop', 'target_stop', 'day_of_week', 'day_of_month', 'month','vehicle_id' ,'distance', 'exit_time', 'arrive_time']))
+    ddf2 = ddf2.reset_index(drop=True)
+
+    ddf2 = ddf2.compute()
 
     partition_schema = pa.schema([
         pa.field('vehicle_id', pa.int32()),
@@ -82,7 +85,7 @@ def process_data(ddf):
         pa.field('arrive_time', pa.float64()),
     ])
     
-    ddf.to_parquet(f'../processed_datasets/{date}.parquet', engine='pyarrow', schema=partition_schema)
+    ddf2.to_parquet(f'../processed_datasets/{date}.parquet', engine='pyarrow', schema=partition_schema)
 
     print(f"Finished processing {date} dataset.")
 
