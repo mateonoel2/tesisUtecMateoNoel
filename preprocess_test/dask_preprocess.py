@@ -1,9 +1,20 @@
+# Add the current directory to the Python path
+sys.path.append(os.getcwd())
+
+
 import dask.dataframe as dd
 import os
 from process_data import process_data
 from dask.distributed import Client, wait
 import dask.config
 import time
+import os
+import sys
+
+
+# Import process_data module
+from process_data import process_data
+
 
 dask.config.set({'distributed.comm.timeouts.connect': '2h'})
 
