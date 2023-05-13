@@ -6,6 +6,6 @@ if __name__ == '__main__':
     .appName("parquet viewer") \
     .getOrCreate()
 
-    data = spark.read.format("parquet").load("processed_datasets/2014-09-10.parquet")
+    data = spark.read.format("parquet").load("processed_datasets/dataset.parquet")
 
     data.show(1000)
