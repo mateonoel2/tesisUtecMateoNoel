@@ -41,9 +41,11 @@ def normalize(data):
     routes = {elem: {elem} for elem in first_stops}
 
     data.insert(0, 'first_stop', None)
-    data.insert(0, 'total_distance', 0)
-    
-    while data['first_stop'].isna().any():
+    data.insert(0, 'total_distance', 0.0)
+
+    loop_count = 0
+    #longest_route_limit = 100 stops
+    while data['first_stop'].isna().any() and loop_count < 100:
         for route_name, stops in routes.items():
             mask = data['exit_stop'].isin(stops) & data['first_stop'].isna()
             mask2 = data['exit_stop'].isin(stops)
@@ -53,5 +55,9 @@ def normalize(data):
             data.loc[mask, 'total_distance'] = data.loc[mask, 'distance'] + total_distance
             routes[route_name] = routes[route_name] | set(new_stops)
             data.loc[mask,'first_stop'] = route_name
+        loop_count += 1
+    
+    if loop_count == 100:
+        data = data.dropna(subset=['first_stop'])
 
     return data

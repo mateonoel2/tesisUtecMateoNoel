@@ -3,7 +3,7 @@ from sort_and_calc import sort_and_calc
 from normalize import normalize
 import pandas as pd
 import pyarrow as pa
-from dask.distributed import get_client
+from dask.distributed import get_client, wait
 import time
 
 def process_data(ddf):
@@ -15,7 +15,12 @@ def process_data(ddf):
             print(f"Error: {e}. Waiting for new client...")
             time.sleep(1)
 
+    first_time_received = ddf['time_received'].head(1).values[0]
+    date = first_time_received[0:10]
+
     #ddf = ddf.repartition(npartitions=80)
+
+    ddf['vehicle_id'] = ddf['vehicle_id'].astype('int')
 
     # Filter out all phases that aren't LAYOVER_DURING and all rows with null
     ddf = ddf.loc[(ddf['inferred_phase'] == "IN_PROGRESS")].dropna()
@@ -26,7 +31,6 @@ def process_data(ddf):
     ddf = group.apply(sort_and_calc, meta=pd.DataFrame(columns=['vehicle_id', 'trip', 'distance', 'date', 'exit_time', 'arrive_time']))
     ddf = ddf.reset_index(drop=True)
 
-    # Apply the dist_fix() function to each group separately
     group = ddf.groupby('trip')
     ddf = group.apply(dist_fix, meta=ddf._meta)
     ddf = ddf.reset_index(drop=True)
@@ -49,9 +53,9 @@ def process_data(ddf):
         pa.field('arrive_time', pa.float64()),
     ])
 
-    ddf = ddf.compute()
-    ddf.to_parquet(f'../processed_datasets/dataset.parquet', engine='pyarrow', schema=partition_schema, compression='snappy')
+    #ddf = ddf.compute()
+    ddf.to_parquet(f'../processed_datasets/{date}.parquet', engine='pyarrow', schema=partition_schema, compression='snappy', write_index=False)
 
-    print(f"Finished processing dataset.")
+    print(f"Finished processing {date} dataset.")
 
     return 0

@@ -3,17 +3,14 @@ import pandas as pd
 
 def sort_and_calc(partition):
     
-    #Sort the partition by 'time_received'
-    partition = partition.sort_values('time_received')
-
     #Clean unusefull data
-    partition = partition.drop_duplicates(subset=['distance_along_trip'])
-    partition = partition.drop_duplicates(subset=['time_received'])
-    partition = partition.drop_duplicates(subset=['next_scheduled_stop_distance', 'next_scheduled_stop_id'])
-
+    partition = partition.sort_values('time_received') \
+                        .drop_duplicates(subset='distance_along_trip') \
+                        .drop_duplicates(subset='time_received') \
+                        .drop_duplicates(subset=['next_scheduled_stop_distance', 'next_scheduled_stop_id'])
+    
     partition.reset_index(drop=True, inplace=True)
-    #print(partition)
-
+    
     data = pd.DataFrame(columns=['trip', 'distance', 'date', 'exit_time', 'arrive_time'])
     
     first = True
