@@ -1,26 +1,15 @@
-# Add the current directory to the Python path
-import sys
-import os
-
-sys.path.append(os.getcwd())
 import dask.dataframe as dd
+import os
 from process_data import process_data
 from dask.distributed import Client, wait
 import dask.config
 import time
-import os
-
-
-
-# Import process_data module
-from process_data import process_data
-
 
 dask.config.set({'distributed.comm.timeouts.connect': '2h'})
 
 if __name__ == '__main__':    
 
-    client = Client('tcp://10.100.15.8:8786')
+    client = Client(timeout="2h", n_workers=80, threads_per_worker=1, memory_limit=None)
 
     folder = "../datasets"
     datasets = os.listdir(folder)
