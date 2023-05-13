@@ -22,26 +22,13 @@ if __name__ == '__main__':
         .config("spark.executor.extraJavaOptions", "-XX:-UseGCOverheadLimit") \
         .getOrCreate()
 
-        start_date = datetime(2014, 8, 1)
-        end_date = datetime(2014, 10, 31)
-        
-        date_range = [start_date + timedelta(days=x) for x in range((end_date-start_date).days + 1)]
-        date_range_str = [date.strftime("%Y-%m-%d") for date in date_range]
 
-        path = "../processed_datasets/{date}.parquet"
+        path = "../processed_datasets/dataset.parquet"
 
-        valid_paths = []
-        for date_str in date_range_str:
-            file_path = path.format(date=date_str)
-            if os.path.exists(file_path):
-                file_size = os.path.getsize(file_path)
-                if file_size > 0:
-                    valid_paths.append(file_path)
-        
         # Load data from Parquet
-        data = spark.read.format("parquet").load(valid_paths)
-        data = data.coalesce(10)
-        data = data.dropna().dropDuplicates().coalesce(10)
+        data = spark.read.format("parquet").load(path)
+        data = data.coalesce(1)
+        data = data.dropna().dropDuplicates().coalesce(80)
 
         # Get the unique values from exit_stop column
         exit_stops = data.select("exit_stop").distinct().rdd.flatMap(lambda x: x).collect()
