@@ -34,5 +34,24 @@ def normalize(data):
     data['target_stop'] = data['target_stop'].astype(int)
 
     data = data.drop('trip', axis=1)
-   
+    
+    mask = ~data['exit_stop'].isin(data['target_stop'])
+    first_stops = set(data['exit_stop'][mask])
+
+    routes = {elem: {elem} for elem in first_stops}
+
+    data.insert(0, 'first_stop', None)
+    data.insert(0, 'total_distance', 0)
+    
+    while data['first_stop'].isna().any():
+        for route_name, stops in routes.items():
+            mask = data['exit_stop'].isin(stops) & data['first_stop'].isna()
+            mask2 = data['exit_stop'].isin(stops)
+            total_distance = data.loc[mask2, 'total_distance'].max()
+
+            new_stops = data.loc[mask, 'target_stop'].to_list()   
+            data.loc[mask, 'total_distance'] = data.loc[mask, 'distance'] + total_distance
+            routes[route_name] = routes[route_name] | set(new_stops)
+            data.loc[mask,'first_stop'] = route_name
+
     return data
