@@ -17,8 +17,8 @@ if __name__ == '__main__':
         .appName("PySpark Linear Regression") \
         .config("spark.driver.memory", "20g") \
         .config("spark.executor.memory", "90g") \
-        .config("spark.executor.instances", "80") \
-        .config("spark.executor.cores", "1") \
+        .config("spark.executor.instances", "1") \
+        .config("spark.executor.cores", "80") \
         .config("spark.driver.extraJavaOptions", "-XX:-UseGCOverheadLimit") \
         .config("spark.executor.extraJavaOptions", "-XX:-UseGCOverheadLimit") \
         .getOrCreate()

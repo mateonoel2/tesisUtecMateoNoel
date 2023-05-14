@@ -16,8 +16,8 @@ if __name__ == '__main__':
         .appName("PySpark preprocess") \
         .config("spark.driver.memory", "20g") \
         .config("spark.executor.memory", "90g") \
-        .config("spark.executor.instances", "80") \
-        .config("spark.executor.cores", "1") \
+        .config("spark.executor.instances", "1") \
+        .config("spark.executor.cores", "80") \
         .config("spark.driver.extraJavaOptions", "-XX:-UseGCOverheadLimit") \
         .config("spark.executor.extraJavaOptions", "-XX:-UseGCOverheadLimit") \
         .getOrCreate()
@@ -85,8 +85,6 @@ if __name__ == '__main__':
         data = data.coalesce(1)
         
         data.write.mode("overwrite").format("parquet").save("../processed_datasets2/dataset")
-
-        data.explain()
     except Exception as e:
         handle_error(e)
     finally:
