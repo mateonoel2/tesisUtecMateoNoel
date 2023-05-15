@@ -15,7 +15,11 @@ def process_data(ddf):
             print(f"Error: {e}. Waiting for new client...")
             time.sleep(1)
 
-    #ddf = ddf.repartition(npartitions=80)
+
+    first_time_received = ddf['time_received'].head(1).values[0]
+    date = first_time_received[0:10]
+
+    ddf = ddf.repartition(npartitions=88)
 
     ddf['vehicle_id'] = ddf['vehicle_id'].astype('int')
 
@@ -50,9 +54,9 @@ def process_data(ddf):
         pa.field('arrive_time', pa.float64()),
     ])
 
-    #ddf = ddf.compute()
-    ddf.to_parquet(f'../processed_datasets/dataset.parquet', engine='pyarrow', schema=partition_schema, compression='snappy', write_index=False)
+    ddf = ddf.compute()
+    ddf.to_parquet(f'../processed_datasets/{date}.parquet', engine='pyarrow', schema=partition_schema, compression='snappy', write_index=False)
 
-    print(f"Finished processing dataset.")
+    print(f"Finished processing {date} dataset.")
 
     return 0
