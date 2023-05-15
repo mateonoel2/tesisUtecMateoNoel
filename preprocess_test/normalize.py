@@ -38,24 +38,31 @@ def normalize(data):
     mask = ~data['exit_stop'].isin(data['target_stop'])
     first_stops = set(data['exit_stop'][mask])
 
-    routes = {elem: {elem} for elem in first_stops}
-
     data.insert(0, 'first_stop', None)
     data.insert(0, 'total_distance', 0.0)
 
+    routes = {elem: {(elem, 0.0)} for elem in first_stops}
     loop_count = 0
+
     #longest_route_limit = 100 stops
     while data['first_stop'].isna().any() and loop_count < 100:
-        for route_name, stops in routes.items():
-            mask = data['exit_stop'].isin(stops) & data['first_stop'].isna()
-            mask2 = data['exit_stop'].isin(stops)
-            total_distance = data.loc[mask2, 'total_distance'].max()
+        for route_name, route_dic in routes.items():
+            stops = [stop[0] for stop in route_dic]
+            t_dists = {stop[0]: stop[1] for stop in route_dic}
 
-            new_stops = data.loc[mask, 'target_stop'].to_list()   
-            data.loc[mask, 'total_distance'] = data.loc[mask, 'distance'] + total_distance
-            routes[route_name] = routes[route_name] | set(new_stops)
+            mask = data['exit_stop'].isin(stops) & data['first_stop'].isna()
+
+            data.loc[mask,'total_distance'] = data.loc[mask,'distance'] + data.loc[mask, 'exit_stop'].map(t_dists)
+
+            new_stops = data.loc[mask, 'target_stop'].to_list()
+            new_dists = data.loc[mask, 'total_distance'].to_list()
+            new_elems = set(zip(new_stops, new_dists))
+
+            routes[route_name] = routes[route_name] | new_elems
             data.loc[mask,'first_stop'] = route_name
+            
         loop_count += 1
+
     
     if loop_count == 100:
         data = data.dropna(subset=['first_stop'])

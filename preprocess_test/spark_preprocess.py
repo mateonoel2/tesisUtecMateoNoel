@@ -1,8 +1,6 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import udf, min, max, lit, asc, dense_rank
 from pyspark.sql.types import DoubleType
-from datetime import datetime, timedelta
-import os
 import sys
 
 # Define a function to handle errors
@@ -16,8 +14,8 @@ if __name__ == '__main__':
         .appName("PySpark preprocess") \
         .config("spark.driver.memory", "20g") \
         .config("spark.executor.memory", "120g") \
-        .config("spark.executor.instances", "20") \
-        .config("spark.executor.cores", "4") \
+        .config("spark.executor.instances", "10") \
+        .config("spark.executor.cores", "8") \
         .config("spark.driver.extraJavaOptions", "-XX:-UseGCOverheadLimit") \
         .config("spark.executor.extraJavaOptions", "-XX:-UseGCOverheadLimit") \
         .getOrCreate()
@@ -28,7 +26,7 @@ if __name__ == '__main__':
         # Load data from Parquet
         data = spark.read.format("parquet").load(path)
         data = data.coalesce(1)
-        data = data.dropna().dropDuplicates().coalesce(320).cache()
+        data = data.dropna().dropDuplicates().repartition(10).cache()
 
         # Get the unique values from exit_stop column
         exit_stops = data.select("exit_stop").distinct().rdd.flatMap(lambda x: x).collect()
@@ -40,18 +38,18 @@ if __name__ == '__main__':
         vehicle_ids = data.select("vehicle_id").distinct().rdd.flatMap(lambda x: x).collect()
 
         # Create a mapping from the old values to the new values (stops)
-        mapping = dict(zip(all_stops, range(1, len(all_stops) + 1)))
+        mapping_s = dict(zip(all_stops, range(1, len(all_stops) + 1)))
+
+        # Create UDFs to apply the mapping to each column
+        exit_stop_mapping = udf(lambda exit_stop: mapping_s[exit_stop])
+        target_stop_mapping = udf(lambda target_stop: mapping_s[target_stop])
+        first_stop_mapping = udf(lambda first_stop: mapping_s[first_stop])
 
         # Create a mapping from the old values to the new values (vehicles)
-        mapping = dict(zip(vehicle_ids, range(1, len(vehicle_ids) + 1)))
+        mapping_v = dict(zip(vehicle_ids, range(1, len(vehicle_ids) + 1)))
 
         # Create UDFs to apply the mapping to each column
-        exit_stop_mapping = udf(lambda exit_stop: mapping[exit_stop])
-        target_stop_mapping = udf(lambda target_stop: mapping[target_stop])
-        first_stop_mapping = udf(lambda first_stop: mapping[first_stop])
-
-        # Create UDFs to apply the mapping to each column
-        vehicle_mapping = udf(lambda vehicle_id: mapping[vehicle_id])
+        vehicle_mapping = udf(lambda vehicle_id: mapping_v[vehicle_id])
         
         # Define a UDF to normalize a column
         normalize_udf = udf(lambda x, min_val, max_val: (x - min_val) / (max_val - min_val), DoubleType())
@@ -62,7 +60,7 @@ if __name__ == '__main__':
         max_value = agg_values[1]
 
         #Print min and max values of total_distance
-        print("Min and max values of distance:")
+        print("Min and max values of total_distance:")
         print(min_value, max_value)
 
         # Apply the changes to the DataFrame using withColumn
@@ -76,12 +74,10 @@ if __name__ == '__main__':
             .withColumnRenamed("arrive_time", "label")
 
         # Sort by time
-        data = data.orderBy(asc("month"), asc("day_of_month"), asc("exit_time"))
-
-        data = data.coalesce(1)
+        data = data.orderBy(asc("month"), asc("day_of_month"), asc("exit_time")).coalesce(1)
         
         data.write.mode("overwrite").format("parquet").save("../processed_datasets2/dataset")
-        
+
     except Exception as e:
         handle_error(e)
     finally:
