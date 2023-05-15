@@ -1,9 +1,8 @@
 import dask.dataframe as dd
 import os
 from process_data import process_data
-from dask.distributed import Client, wait
+from dask.distributed import Client
 import dask.config
-import time
 
 dask.config.set({'distributed.comm.timeouts.connect': '2h'})
 
