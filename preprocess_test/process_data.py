@@ -55,7 +55,7 @@ def process_data(ddf):
     ])
 
     ddf = ddf.compute()
-    ddf.to_parquet(f'../processed_datasets/{date}.parquet', engine='pyarrow', schema=partition_schema, compression='snappy', write_index=False)
+    ddf.to_parquet(f'../processed_datasets/{date}.parquet', engine='pyarrow', schema=partition_schema, compression='snappy')
 
     print(f"Finished processing {date} dataset.")
 
