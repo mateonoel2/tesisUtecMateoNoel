@@ -25,8 +25,7 @@ if __name__ == '__main__':
                     usecols=['time_received', 'vehicle_id', 'distance_along_trip', 'inferred_phase',
                                 'next_scheduled_stop_distance', 'next_scheduled_stop_id'])
             
-        future = client.submit(process_data, ddf, priority=num_datasets-i-1)
-        results.append(future)
+        process_data(ddf)
         
-    wait(results)
+    ddf = ddf.compute()
     print("SUCCESS")
