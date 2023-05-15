@@ -11,7 +11,7 @@ if __name__ == '__main__':
               .limit(1000)
               
        # dictionary containing the minimum and maximum values for each column
-       min_max_dict = {'total_distance': (100, 44510), 'distance': (100, 44510), 'exit_time': (0, 86400), 'label': (0, 86400)}
+       min_max_dict = {'total_distance': (100, 27100), 'distance': (100, 27100), 'exit_time': (0, 86400), 'label': (0, 86400)}
 
        # create a new dataframe with unnormalized columns
        df = data.select(    [ col_name for col_name in data.columns if col_name not in min_max_dict.keys()] +
@@ -33,7 +33,7 @@ if __name__ == '__main__':
 
        df = df.withColumn("speed(km/h)", round("speed(km/h)",2))
 
-       df.select(col("vehicle_id"), col("day_of_month").alias("day"), 
+       df.select(col("vehicle_id"), col("month"), col("day_of_month").alias("day"), 
                  col("distance").alias("distance(m)"), col("exit_time").alias("exit_time(s)"), 
                  col("label").alias("arrive_time(s)"), col("speed(km/h)")).show(20)
 

@@ -3,7 +3,7 @@ from sort_and_calc import sort_and_calc
 from normalize import normalize
 import pandas as pd
 import pyarrow as pa
-from dask.distributed import get_client, wait
+from dask.distributed import get_client
 import time
 
 def process_data(ddf):
@@ -19,7 +19,7 @@ def process_data(ddf):
     first_time_received = ddf['time_received'].head(1).values[0]
     date = first_time_received[0:10]
 
-    ddf = ddf.repartition(npartitions=88)
+    ddf = ddf.repartition(npartitions=80)
 
     ddf['vehicle_id'] = ddf['vehicle_id'].astype('int')
 
@@ -40,6 +40,8 @@ def process_data(ddf):
     ddf = group.apply(normalize, meta=pd.DataFrame(columns=['total_distance','first_stop','exit_stop', 'target_stop', 'day_of_week', 'day_of_month', 'month','vehicle_id','distance', 'exit_time', 'arrive_time']))
     ddf = ddf.reset_index(drop=True)
 
+    ddf = ddf.compute()
+
     partition_schema = pa.schema([
         pa.field('vehicle_id', pa.int32()),
         pa.field('month', pa.int32()),
@@ -54,7 +56,7 @@ def process_data(ddf):
         pa.field('arrive_time', pa.float64()),
     ])
 
-    ddf = ddf.compute()
+    
     ddf.to_parquet(f'../processed_datasets/{date}.parquet', engine='pyarrow', schema=partition_schema, compression='snappy')
 
     print(f"Finished processing {date} dataset.")
