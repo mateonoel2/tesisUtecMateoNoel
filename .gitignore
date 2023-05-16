@@ -4,3 +4,5 @@
 *.parquet
 **/tmp/**
 **/processed_datasets2/**
+**/processed_datasets3/**
+**/processed_data/**
