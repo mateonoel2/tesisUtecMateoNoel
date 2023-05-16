@@ -1,5 +1,5 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import udf, min, max, lit, asc, dense_rank
+from pyspark.sql.functions import udf, min, max, lit, asc
 from pyspark.sql.types import DoubleType
 import sys
 
@@ -12,21 +12,14 @@ if __name__ == '__main__':
     try:
         spark = SparkSession.builder \
         .appName("PySpark preprocess") \
-        .config("spark.driver.memory", "20g") \
-        .config("spark.executor.memory", "120g") \
-        .config("spark.executor.instances", "10") \
-        .config("spark.executor.cores", "8") \
+        .config("spark.executor.instances", "1") \
+        .config("spark.executor.cores", "80") \
         .config("spark.driver.extraJavaOptions", "-XX:-UseGCOverheadLimit") \
         .config("spark.executor.extraJavaOptions", "-XX:-UseGCOverheadLimit") \
         .getOrCreate()
 
-
-        path = "../processed_datasets/*.parquet"
-
         # Load data from Parquet
-        data = spark.read.format("parquet").load(path)
-        data = data.coalesce(1)
-        data = data.dropna().dropDuplicates().repartition(10).cache()
+        data = spark.read.parquet("../processed_data/dataset").coalesce(1).cache()
 
         # Get the unique values from exit_stop column
         exit_stops = data.select("exit_stop").distinct().rdd.flatMap(lambda x: x).collect()

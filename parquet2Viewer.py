@@ -11,7 +11,8 @@ if __name__ == '__main__':
               .limit(1000)
               
        # dictionary containing the minimum and maximum values for each column
-       min_max_dict = {'total_distance': (100, 12710), 'distance': (100, 12710), 'exit_time': (0, 86400), 'label': (0, 86400)}
+       max_dist = 41260
+       min_max_dict = {'total_distance': (100, max_dist), 'distance': (100, max_dist), 'exit_time': (0, 86400), 'label': (0, 86400)}
 
        # create a new dataframe with unnormalized columns
        df = data.select(    [ col_name for col_name in data.columns if col_name not in min_max_dict.keys()] +

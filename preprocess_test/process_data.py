@@ -19,7 +19,7 @@ def process_data(ddf):
     first_time_received = ddf['time_received'].head(1).values[0]
     date = first_time_received[0:10]
 
-    ddf = ddf.repartition(npartitions=80)
+    ddf = ddf.repartition(npartitions=35)
 
     ddf['vehicle_id'] = ddf['vehicle_id'].astype('int')
 
