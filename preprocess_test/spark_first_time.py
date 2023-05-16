@@ -12,14 +12,14 @@ df = spark.read.parquet("../processed_datasets2/dataset").coalesce(1).cache()
 window_spec = Window.partitionBy("first_stop").orderBy(asc("month"), asc("day_of_month"), asc("exit_time"))
 
 # Add the "first_time" column
-df = df.withColumn("first_time", when(df.first_stop == df.exit_stop, last(df.exit_time).over(window_spec)))
+df = df.withColumn("first_time", when(df.first_stop == df.exit_stop, last(df.exit_time).over(window_spec))).coalesce(1).cache()
 
 df = df.select("first_time", *df.columns[:-1])
 
 #Fill null values in the "first_time" column with the last non-null value
-df = df.withColumn("first_time", last(col("first_time"), ignorenulls=True).over(window_spec))
+df = df.withColumn("first_time", last(col("first_time"), ignorenulls=True).over(window_spec)).coalesce(1).cache()
 
-df = df.dropna(subset=["first_time"])
+df = df.dropna(subset=["first_time"]).coalesce(1).cache()
 
 df = df.orderBy(asc("month"), asc("day_of_month"), asc("exit_time")).coalesce(1).cache()
 
