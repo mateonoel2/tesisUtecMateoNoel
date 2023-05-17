@@ -22,6 +22,7 @@ if __name__ == '__main__':
         .getOrCreate()
         
         #total_count_data = 10000 
+        #Only use hours 7:00am - 9:00am 
         print("7am - 9am all days:")
 
         # Load data from Parquet
@@ -29,12 +30,7 @@ if __name__ == '__main__':
                 .filter((col("label") >= 0.291) & (col("label") <= 0.375))\
                 .orderBy(asc("month"), asc("day_of_month"), asc("exit_time")).cache()
                 #.limit(total_count_data)\
-                
         
-        #data.show(1)
-
-        #Only use hours 7:00am - 9:00am 
-
         dataOG = data
 
         for a in range(2):
