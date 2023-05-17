@@ -4,6 +4,7 @@ from pyspark.ml.evaluation import RegressionEvaluator
 from pyspark.ml.feature import VectorAssembler
 from pyspark.sql.functions import abs, asc, col
 import sys
+from pyspark.ml import Pipeline
 
 # Define a function to handle errors during model training
 def handle_error(e):
@@ -22,14 +23,14 @@ if __name__ == '__main__':
         .getOrCreate()
         
         #total_count_data = 10000 
-        #Only use hours 7:00am - 9:00am 
-        print("7am - 9am all days:")
+        print("89 días")
 
         # Load data from Parquet
         data = spark.read.parquet("../processed_datasets3/dataset").coalesce(1)\
-                .filter((col("label") >= 0.291) & (col("label") <= 0.375))\
                 .orderBy(asc("month"), asc("day_of_month"), asc("exit_time")).cache()
+                #.filter((col("label") >= 0.291) & (col("label") <= 0.375))\
                 #.limit(total_count_data)\
+                #.filter((col("month") == 8) & (col("day_of_month") <= 3))\
         
         dataOG = data
 
