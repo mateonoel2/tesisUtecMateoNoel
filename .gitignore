@@ -6,3 +6,6 @@
 **/processed_datasets2/**
 **/processed_datasets3/**
 **/processed_data/**
+processed_datasets_concat/dataset/_SUCCESS
+processed_datasets_concat/dataset/._SUCCESS.crc
+processed_datasets_concat/dataset/.part-00000-67144ace-5e5a-4736-9516-15f09c3c16fd-c000.snappy.parquet.crc

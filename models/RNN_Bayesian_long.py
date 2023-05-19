@@ -20,9 +20,9 @@ def train_evaluate_model(epochs, batch_size):
         data = pd.read_parquet("../processed_datasets3/dataset")
         
         # Perform one-hot encoding for categorical features
-        categorical_features = ['day_of_week', 'exit_stop', 'target_stop']
+        categorical_features = ['day_of_week', 'first_stop', 'target_stop']
         encoded_features = pd.get_dummies(data[categorical_features])
-        numerical_features = data[['distance', 'exit_time']]
+        numerical_features = data[['total_distance', 'first_time']]
         features = pd.concat([encoded_features, numerical_features], axis=1).values
 
         labels = data['label'].values
