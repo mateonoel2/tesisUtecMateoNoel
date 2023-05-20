@@ -7,10 +7,11 @@ if __name__ == '__main__':
        .appName("parquet2 viewer") \
        .getOrCreate()
 
-       data = spark.read.format("parquet").load("processed_datasets3/dataset")\
-              .filter(col("vehicle_id") == 1)\
-              .limit(1000)
+       data = spark.read.format("parquet").load("processed_datasets_7_11/dataset")
        
+       print(data.count())
+       data.printSchema()
+
        # dictionary containing the minimum and maximum values for each column
        max_dist = 41260
        min_max_dict = {'total_distance': (100, max_dist), 'distance': (100, max_dist), 'first_time': (0, 86400), 'exit_time': (0, 86400), 'label': (0, 86400)}
@@ -30,20 +31,17 @@ if __name__ == '__main__':
               .withColumn('total_distance', round('total_distance').cast(IntegerType()))
 
        # show the unnormalized dataframe
-       df = df.withColumn('distance(km)', col('distance') / 1000)
-       df = df.withColumn("travel_time", ((col("label") - col("exit_time")) / 3600))
-       df = df.withColumn("speed(km/h)", col("distance(km)") / col("travel_time"))
+       df = df.withColumn("travel_time", (col("label") - col("exit_time")))
+       df = df.withColumn("speed", col("distance") / col("travel_time"))
+       df = df.withColumn("travel_time", (col("label") - col("first_time")))
+       df = df.withColumn("total_speed", col("total_distance") / col("travel_time"))
 
-       df = df.withColumn("speed(km/h)", round("speed(km/h)",2))
-       df = df.drop("travel_time", "distance(km)")
-       df = df.drop("vehicle_id", "month", "day_of_month")
+       df = df.withColumn("speed", round("speed",2))
+       df = df.withColumn("total_speed", round("total_speed",2))
+       df = df.drop("travel_time")
+       
+       df = df.filter(col("speed") > 1)
 
        df.show(1000)
 
-       # df.select(col("vehicle_id"), col("month"), col("day_of_month").alias("day"), 
-       #           col("distance").alias("distance(m)"), col("exit_time").alias("exit_time(s)"), 
-       #           col("label").alias("arrive_time(s)"), col("speed(km/h)")).show(20)
-
-       # df.select(col("vehicle_id"),col("first_stop"), col("exit_stop"), 
-       #           col("target_stop"), col("total_distance").alias("total_distance(m)"), 
-       #           col("distance").alias("distance(m)")).show(20)
+       df.write.mode("overwrite").format("parquet").save("unNormalized_dataset/dataset")

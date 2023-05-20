@@ -1,29 +1,39 @@
+import os
 import sys
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error
+from sklearn.preprocessing import StandardScaler
+
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+
 from keras.models import Sequential
 from keras.layers import LSTM, Dense
 from bayes_opt import BayesianOptimization
-import os
 
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+
+os.environ['CUDA_VISIBLE_DEVICES'] = ''
 
 # Define a function to handle errors during model training
 def handle_error(e):
     print("Error occurred during model training: ", e)
     sys.exit(1)
 
-def train_evaluate_model(epochs, batch_size):
+def train_evaluate_model(epochs, batch_size, LSTM_units):
     try:
-        data = pd.read_parquet("../processed_datasets3/dataset")
+        LSTM_units = int(LSTM_units)
+        epochs = int(epochs)
+        batch_size = int(batch_size)
         
-        # Perform one-hot encoding for categorical features
-        categorical_features = ['day_of_week', 'exit_stop', 'target_stop']
-        encoded_features = pd.get_dummies(data[categorical_features])
-        numerical_features = data[['distance', 'exit_time']]
-        features = pd.concat([encoded_features, numerical_features], axis=1).values
+        data = pd.read_parquet("../unNormalized_dataset/dataset") 
+        data = data.head(1000)
+        
+        scaler = StandardScaler()
+        
+        features = data[['day_of_week', 'total_speed', 'first_stop', 'target_stop', 'total_distance', 'first_time']]
+
+        features = scaler.fit_transform(features)
 
         labels = data['label'].values
 
@@ -36,14 +46,14 @@ def train_evaluate_model(epochs, batch_size):
 
         # Define the model
         model = Sequential()
-        model.add(LSTM(128, input_shape=(1, features.shape[1])))
+        model.add(LSTM(LSTM_units, input_shape=(1, features.shape[1])))
         model.add(Dense(1))
 
         # Compile the model
         model.compile(loss='mean_squared_error', optimizer='adam')
 
         # Train the model
-        model.fit(X_train, y_train, epochs=int(epochs), batch_size=int(batch_size), verbose=4)
+        model.fit(X_train, y_train, epochs=int(epochs), batch_size=int(batch_size), verbose=0)
 
         # Evaluate the model
         y_pred = model.predict(X_test)
@@ -56,6 +66,7 @@ def train_evaluate_model(epochs, batch_size):
 
 # Define the parameter ranges for Bayesian optimization
 pbounds = {
+    'LSTM_units': (32, 1024),
     'epochs': (10, 100),
     'batch_size': (16, 128),
 }
@@ -69,7 +80,7 @@ optimizer = BayesianOptimization(
 )
 
 # Optimize the objective function
-optimizer.maximize(init_points=5, n_iter=10)
+optimizer.maximize(init_points=40, n_iter=50)
 
 # Print the best parameters and score
 print(optimizer.max)
