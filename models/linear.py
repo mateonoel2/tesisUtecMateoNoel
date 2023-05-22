@@ -15,8 +15,8 @@ if __name__ == '__main__':
         # Create a SparkSession
         spark = SparkSession.builder \
         .appName("PySpark Linear Regression")\
-        .config("spark.executor.instances", "10")\
-        .config("spark.executor.cores", "8")\
+        .config("spark.executor.instances", "4")\
+        .config("spark.executor.cores", "2")\
         .config("spark.driver.extraJavaOptions", "-XX:-UseGCOverheadLimit") \
         .config("spark.executor.extraJavaOptions", "-XX:-UseGCOverheadLimit") \
         .getOrCreate()
@@ -30,77 +30,67 @@ if __name__ == '__main__':
         
         dataOG = data
 
-        for a in range(2):
-            if a == 0:
-                #Short distances:
-                data = dataOG.select("day_of_week", "speed", "exit_time", "distance", "exit_stop", "target_stop", "label")
-                print("Short distances:")
-            elif a == 1:
-                #Long distances:
-                data = dataOG.select("day_of_week", "total_speed" ,"first_time", "total_distance", "first_stop", "target_stop", "label")
-                print("Long distances:")
 
-            data.show(5)
-            print("Data size", data.count())
+        #Short distances:
+        data = dataOG.select("day_of_week", "exit_time", "distance", "exit_stop", "target_stop", "label")
+        print("Short distances:")
 
-            # Prepare data for regression training
-            assembler = VectorAssembler(inputCols=data.columns[:-1], outputCol="features_a")
-            data = assembler.transform(data).select("features_a", "label") 
+        data.show(5)
+        print("Data size", data.count())
 
-            #Scale data
-            scaler = StandardScaler(inputCol="features_a", outputCol="features")
-            scaler_model = scaler.fit(data)
-            data = scaler_model.transform(data).select("features", "label")
+        # Prepare data for regression training
+        assembler = VectorAssembler(inputCols=data.columns[:-1], outputCol="features_a")
+        data = assembler.transform(data).select("features_a", "label") 
 
-            data.show(5, truncate=False)
+        #Scale data
+        scaler = StandardScaler(inputCol="features_a", outputCol="features")
+        scaler_model = scaler.fit(data)
+        data = scaler_model.transform(data).select("features", "label")
 
-            # Calculate the split point
-            split_point = int(data.count() * 0.9)
+        data.show(5, truncate=False)
 
-            # Split the data in order
-            train_data = data.limit(split_point).cache() 
-            test_data = data.subtract(train_data).cache()  
+        # Calculate the split point
+        split_point = int(data.count() * 0.9)
 
-            #choose regressor
-            for i in range(3):
-                if i == 0:
-                    regressor = GBTRegressor(featuresCol="features", labelCol="label")
-                    print("GBTRegressor")
-                elif i == 1:
-                    regressor = RandomForestRegressor(featuresCol="features", labelCol="label")
-                    print("RandomForestRegressor")
-                elif i == 2:
-                    regressor = LinearRegression(featuresCol="features", labelCol="label")
-                    print("LinearRegression")
+        # Split the data in order
+        train_data = data.limit(split_point).cache() 
+        test_data = data.subtract(train_data).cache()  
 
-                # Train the regression model
-                model = regressor.fit(train_data)
+        #choose regressor
+        regressor = LinearRegression(featuresCol="features", labelCol="label")
+        print("LinearRegression")
 
-                # Make predictions on the test data
-                predictions = model.transform(test_data)
+        # Train the regression model
+        model = regressor.fit(train_data)
 
-                # Add a new column with the absolute difference between label and prediction
-                predictions = predictions.withColumn("abs_diff", abs(predictions["label"] - predictions["prediction"]))
+        # Make predictions on the test data
+        predictions = model.transform(test_data)
 
-                total_count = predictions.count()
+        # Add a new column with the absolute difference between label and prediction
+        predictions = predictions.withColumn("abs_diff", abs(predictions["label"] - predictions["prediction"]))
 
-                # Calculate the percentage of data within a ranges of 10, 5, 1, and 0.5 minutes
-                ranges = [(10*60), (5*60), 60, 30]
+        total_count = predictions.count()
 
-                # Iterate over the ranges and calculate the percentage of data within each range
-                for r in ranges:
-                    within_range_count = predictions.filter(predictions["abs_diff"] <= r).count()
-                    percent_within_range = within_range_count / total_count * 100
-                    print("{:.2f}% of data is within a range of {:.0f} seconds".format(percent_within_range, r))
+        # Calculate the percentage of data within a ranges of 10, 5, 1, and 0.5 minutes
+        ranges = [(10*60), (5*60), 60, 30]
 
-                # Evaluate the model using mean squared error and r2
-                evaluator = RegressionEvaluator(labelCol="label", predictionCol="prediction", metricName="rmse")
-                rmse = evaluator.evaluate(predictions)
-                print("Root Mean Squared Error (RMSE) = {:.4f}".format(rmse))
+        # Iterate over the ranges and calculate the percentage of data within each range
+        for r in ranges:
+            within_range_count = predictions.filter(predictions["abs_diff"] <= r).count()
+            percent_within_range = within_range_count / total_count * 100
+            print("{:.2f}% of data is within a range of {:.0f} seconds".format(percent_within_range, r))
 
-                evaluator = RegressionEvaluator(labelCol="label", predictionCol="prediction", metricName="r2")
-                r2 = evaluator.evaluate(predictions)
-                print("R-squared (R2) = {:.4f}\n".format(r2))
+        # Evaluate the model using mean squared error and r2
+        evaluator = RegressionEvaluator(labelCol="label", predictionCol="prediction", metricName="rmse")
+        rmse = evaluator.evaluate(predictions)
+        print("Root Mean Squared Error (RMSE) = {:.4f}".format(rmse))
+
+        evaluator = RegressionEvaluator(labelCol="label", predictionCol="prediction", metricName="r2")
+        r2 = evaluator.evaluate(predictions)
+        print("R-squared (R2) = {:.4f}\n".format(r2))
+
+        #load model
+        model.save("../trained_models/linearRegression")
 
     except Exception as e:
         handle_error(e)
