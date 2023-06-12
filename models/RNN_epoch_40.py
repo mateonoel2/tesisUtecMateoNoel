@@ -25,7 +25,7 @@ if __name__ == '__main__':
         
         print("Long distances:")
 
-        features = data[['day_of_week', 'first_stop', 'target_stop', 'total_distance', 'first_time']]
+        features = data[["day_of_week", "first_time", "total_distance", "first_stop", "target_stop"]]
 
         features = scaler.fit_transform(features)
 
@@ -41,51 +41,25 @@ if __name__ == '__main__':
         X_test = np.reshape(X_test, (X_test.shape[0], 1, X_test.shape[1]))
         X_final_test = np.reshape(X_final_test, (X_final_test.shape[0], 1, X_final_test.shape[1]))
 
+        print(X_train)
+
         # Define the model
-        model = load_model('../trained_models/RNN_40.h5')
+        model = load_model('../trained_models/RNN_90.h5')
 
-        y_pred = model.predict(X_test)
-        r2 = r2_score(y_test, y_pred)
-        rmse = np.sqrt(mean_squared_error(y_test, y_pred))
-
-        # Define the time thresholds in the range
-        ranges = [600, 300, 60, 30]
+        y_pred = model.predict(X_train)
         
-        y_pred = y_pred.flatten()
+        print(y_pred)
 
-        for r in ranges:    
-            diff = np.abs(y_pred - y_test)
-            within_range = diff <= r
-            values_within_range = diff[within_range]
-            percent_within_range = np.sum(within_range) / y_pred.shape[0] * 100
-            print("{:.2f}% of data is within a range of {:.0f} seconds".format(percent_within_range, r))
+        # Convert X_test back to DataFrame
+        X_test_df = pd.DataFrame(X_train.reshape(X_train.shape[0], X_train.shape[2]), columns=['day_of_week', 'first_time',  'total_distance', 'first_stop', 'target_stop'])
 
-        # Print metrics
-        print("R-squared: {:.4f}".format(r2))
-        print("RMSE: {:.4f}".format(rmse))
+        # Convert y_pred to DataFrame
+        y_pred_df = pd.DataFrame(y_pred, columns=['Predicted_Label'])
 
-        y_pred = model.predict(X_final_test)
+        # Concatenate the two dataframes along the columns
+        result = pd.concat([X_test_df, y_pred_df], axis=1)
 
-        r2 = r2_score(y_final_test, y_pred)
-        rmse = np.sqrt(mean_squared_error(y_final_test, y_pred))
-
-        # Define the time thresholds in the range
-        ranges = [600, 300, 60, 30]
-        
-        y_pred = y_pred.flatten()
-
-        for r in ranges:    
-            diff = np.abs(y_pred - y_final_test)
-            within_range = diff <= r
-            values_within_range = diff[within_range]
-            percent_within_range = np.sum(within_range) / y_pred.shape[0] * 100
-            print("{:.2f}% of data is within a range of {:.0f} seconds".format(percent_within_range, r))
-
-        # Print metrics
-        print("R-squared: {:.4f}".format(r2))
-        print("RMSE: {:.4f}".format(rmse))
-
-        model.save(f'../trained_models/RNN_35.h5')
+        print(result)
 
     except Exception as e:
         handle_error(e)
